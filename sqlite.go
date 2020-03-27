@@ -2,38 +2,99 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"time"
 )
 
 type MSData struct {
 	tgId         int
-	tgName       string
 	refreshToken string
-	uptime       int64
+	uptime       time.Time
 	other        string
 }
 
 func init() {
 }
-func AddData(db *sql.DB, u MSData) bool {
-	sqlString := `
-	INSERT INTO users (tg_id, tg_name, refresh_token, uptime,other)
-	VALUES (?,?,?,?,?);`
+
+//update data by refreshtoken
+func UpdateData(db *sql.DB, u MSData) (bool, error) {
+	sqlString := `UPDATE users set tg_id=?,uptime=?,other=?  where refresh_token=?`
 	stmt, err := db.Prepare(sqlString)
-	CheckErr(err)
-	_, err = stmt.Exec(u.tgId, u.tgName, u.refreshToken, u.uptime, u.other)
-	return CheckErr(err)
+	if err != nil {
+		return false, err
+	}
+	res, err := stmt.Exec(u.tgId, u.uptime, u.other, u.refreshToken)
+	if err != nil {
+		return false, err
+	}
+	fmt.Println("Update Data Successd:", res)
+	return true, nil
 }
-func CreateTB(db *sql.DB) {
+
+//add data
+func AddData(db *sql.DB, u MSData) (bool, error) {
+	sqlString := `
+	INSERT INTO users (tg_id, refresh_token, uptime,other)
+	VALUES (?,?,?,?)`
+	stmt, err := db.Prepare(sqlString)
+	if err != nil {
+		return false, err
+	}
+	_, err = stmt.Exec(u.tgId, u.refreshToken, u.uptime, u.other)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+//del data by refresh_token
+func DelData(db *sql.DB, refreshToken string) (bool, error) {
+	sqlString := `delete from users where refresh_token=?`
+	stmt, err := db.Prepare(sqlString)
+	if err != nil {
+		return false, err
+	}
+	res, err := stmt.Exec(refreshToken)
+	if err != nil {
+		return false, err
+	}
+	_, err = res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+//query data by tg_id
+func QueryData(db *sql.DB, tgid int) []MSData {
+	rows, err := db.Query("select  * from users where tg_id = ?;", tgid)
+	CheckErr(err)
+	var result = make([]MSData, 0)
+	defer rows.Close()
+	for rows.Next() {
+		var refresht, othert string
+		var tgIdt int
+		var uptimet time.Time
+		rows.Scan(&tgIdt, &refresht, &uptimet, &othert)
+		//fmt.Println(string(tgNamet) + "=>" + uptimet.Format("2006-01-02 15:04:05"))
+		result = append(result, MSData{tgIdt, refresht, uptimet, othert})
+	}
+	return result
+}
+func CreateTB(db *sql.DB) (bool, error) {
 
 	sqltable := `
     create table if not exists "users"
 	(
 	tg_id INTEGER,
-	tg_name VARCHAR(255),
 	refresh_token TEXT,
-	uptime INTEGER,
+	uptime DATE,
 	other TEXT
 	);`
-	db.Exec(sqltable)
+	_, err := db.Exec(sqltable)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
