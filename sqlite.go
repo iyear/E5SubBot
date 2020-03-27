@@ -10,6 +10,7 @@ import (
 type MSData struct {
 	tgId         int
 	refreshToken string
+	msId         string
 	uptime       time.Time
 	other        string
 }
@@ -17,14 +18,14 @@ type MSData struct {
 func init() {
 }
 
-//update data by refreshtoken
+//update data by msId
 func UpdateData(db *sql.DB, u MSData) (bool, error) {
-	sqlString := `UPDATE users set tg_id=?,uptime=?,other=?  where refresh_token=?`
+	sqlString := `UPDATE users set tg_id=?,refresh_token=?,uptime=?,other=?  where ms_id=?`
 	stmt, err := db.Prepare(sqlString)
 	if err != nil {
 		return false, err
 	}
-	res, err := stmt.Exec(u.tgId, u.uptime, u.other, u.refreshToken)
+	res, err := stmt.Exec(u.tgId, u.refreshToken, u.uptime, u.other, u.msId)
 	if err != nil {
 		return false, err
 	}
@@ -35,22 +36,22 @@ func UpdateData(db *sql.DB, u MSData) (bool, error) {
 //add data
 func AddData(db *sql.DB, u MSData) (bool, error) {
 	sqlString := `
-	INSERT INTO users (tg_id, refresh_token, uptime,other)
-	VALUES (?,?,?,?)`
+	INSERT INTO users (tg_id, refresh_token,ms_id, uptime,other)
+	VALUES (?,?,?,?,?)`
 	stmt, err := db.Prepare(sqlString)
 	if err != nil {
 		return false, err
 	}
-	_, err = stmt.Exec(u.tgId, u.refreshToken, u.uptime, u.other)
+	_, err = stmt.Exec(u.tgId, u.refreshToken, u.msId, u.uptime, u.other)
 	if err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-//del data by refresh_token
+//del data by ms_id
 func DelData(db *sql.DB, refreshToken string) (bool, error) {
-	sqlString := `delete from users where refresh_token=?`
+	sqlString := `delete from users where ms_id=?`
 	stmt, err := db.Prepare(sqlString)
 	if err != nil {
 		return false, err
@@ -68,17 +69,17 @@ func DelData(db *sql.DB, refreshToken string) (bool, error) {
 
 //query data by tg_id
 func QueryData(db *sql.DB, tgid int) []MSData {
-	rows, err := db.Query("select  * from users where tg_id = ?;", tgid)
+	rows, err := db.Query("select  * from users where tg_id = ?", tgid)
 	CheckErr(err)
 	var result = make([]MSData, 0)
 	defer rows.Close()
 	for rows.Next() {
-		var refresht, othert string
+		var refresht, othert, msidt string
 		var tgIdt int
 		var uptimet time.Time
-		rows.Scan(&tgIdt, &refresht, &uptimet, &othert)
+		rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &othert)
 		//fmt.Println(string(tgNamet) + "=>" + uptimet.Format("2006-01-02 15:04:05"))
-		result = append(result, MSData{tgIdt, refresht, uptimet, othert})
+		result = append(result, MSData{tgIdt, refresht, msidt, uptimet, othert})
 	}
 	return result
 }
@@ -89,6 +90,7 @@ func CreateTB(db *sql.DB) (bool, error) {
 	(
 	tg_id INTEGER,
 	refresh_token TEXT,
+	ms_id TEXT,
 	uptime DATE,
 	other TEXT
 	);`
