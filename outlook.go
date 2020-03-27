@@ -106,3 +106,21 @@ func MSGetUserInfo(accesstoken string) string {
 	}
 	return ""
 }
+
+func OutLookGetMails(accesstoken string) bool {
+	client := http.Client{}
+	//r.Header.Set("Host","graph.microsoft.com")
+	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me/messages", nil)
+	if err != nil {
+		fmt.Println("MSGetMils ERROR ", err.Error())
+		return false
+	}
+	req.Header.Set("Authorization", accesstoken)
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+	content, _ := ioutil.ReadAll(resp.Body)
+	if gjson.Get(string(content), "@odata.context").String() != "" {
+		return true
+	}
+	return false
+}
