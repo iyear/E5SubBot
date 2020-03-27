@@ -49,6 +49,6 @@ func GetBetweenStr(str, start, end string) string {
 func GetURLValue(Url, key string) string {
 	u, _ := url.Parse(Url)
 	query := u.Query()
-	fmt.Println(query.Get(key))
-	return ""
+	//fmt.Println(query.Get(key))
+	return query.Get(key)
 }
