@@ -8,7 +8,7 @@ import (
 )
 
 type MSData struct {
-	tgId         int
+	tgId         int64
 	refreshToken string
 	msId         string
 	uptime       time.Time
@@ -75,7 +75,7 @@ func QueryData(db *sql.DB, tgid int) []MSData {
 	defer rows.Close()
 	for rows.Next() {
 		var refresht, othert, msidt string
-		var tgIdt int
+		var tgIdt int64
 		var uptimet time.Time
 		rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &othert)
 		//fmt.Println(string(tgNamet) + "=>" + uptimet.Format("2006-01-02 15:04:05"))
