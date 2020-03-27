@@ -8,10 +8,6 @@ import (
 	"strings"
 )
 
-const (
-	bStartContent string = "欢迎使用E5SubBot!"
-)
-
 func CheckErr(err error) bool {
 	if err != nil {
 		log.Println(err)

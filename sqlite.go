@@ -68,8 +68,8 @@ func DelData(db *sql.DB, refreshToken string) (bool, error) {
 }
 
 //query data by tg_id
-func QueryData(db *sql.DB, tgid int) []MSData {
-	rows, err := db.Query("select  * from users where tg_id = ?", tgid)
+func QueryData(db *sql.DB, tgId int64) []MSData {
+	rows, err := db.Query("select  * from users where tg_id = ?", tgId)
 	CheckErr(err)
 	var result = make([]MSData, 0)
 	defer rows.Close()
