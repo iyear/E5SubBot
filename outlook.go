@@ -33,7 +33,7 @@ func init() {
 }
 
 //return access_token and refresh_token
-func MSFirGetToken(code, scope string) (string, string) {
+func MSFirGetToken(code, scope string) (access string, refresh string) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
@@ -59,7 +59,7 @@ func MSFirGetToken(code, scope string) (string, string) {
 }
 
 //return access_token
-func MSGetToken(refreshtoken, scope string) string {
+func MSGetToken(refreshtoken, scope string) (access string) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
@@ -88,7 +88,7 @@ func MSGetToken(refreshtoken, scope string) string {
 }
 
 //Get User's Information
-func MSGetUserInfo(accesstoken string) string {
+func MSGetUserInfo(accesstoken string) (json string) {
 	client := http.Client{}
 	//r.Header.Set("Host","graph.microsoft.com")
 	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me", nil)
