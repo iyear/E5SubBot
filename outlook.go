@@ -17,6 +17,7 @@ const (
 var (
 	cliid   string
 	rediuri string
+	scope   string
 )
 
 func init() {
@@ -28,12 +29,15 @@ func init() {
 	}
 	cliid = viper.GetString("client_id")
 	rediuri = viper.GetString("redirect_uri")
+	scope = viper.GetString("scope")
 	//refreshtoken := "xxxx"
 	//fmt.Println(MSGetUserInfo(MSGetToken(refreshtoken,"user.read mail.read")))
+	//code := "xxx"
+	//fmt.Println(MSFirGetToken(code))
 }
 
 //return access_token and refresh_token
-func MSFirGetToken(code, scope string) (access string, refresh string) {
+func MSFirGetToken(code string) (access string, refresh string) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
@@ -59,7 +63,7 @@ func MSFirGetToken(code, scope string) (access string, refresh string) {
 }
 
 //return access_token
-func MSGetToken(refreshtoken, scope string) (access string) {
+func MSGetToken(refreshtoken string) (access string) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
