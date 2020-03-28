@@ -55,6 +55,8 @@ func BindUser(m *tb.Message) string {
 	fmt.Printf("%d Bind Successfully!\n", m.Chat.ID)
 	return ""
 }
+
+//get bind num
 func GetBindNum(tgId int64) int {
 	data := QueryDataByTG(db, tgId)
 	return len(data)
@@ -70,4 +72,25 @@ func MSUserIsExist(tgId int64, msId string) bool {
 		}
 	}
 	return false
+}
+
+//SignTask
+func SignTask() {
+	data := QueryDataAll(db)
+	for _, u := range data {
+		access := MSGetToken(u.refreshToken)
+		if access == "" {
+			fmt.Println(u.msId + "Sign ERROR:AccessTokenGet")
+			continue
+		}
+		if !OutLookGetMails(access) {
+			fmt.Println(u.msId + "Sign ERROR:ReadMails")
+			continue
+		}
+		fmt.Println(u.msId + " Sign OK!")
+		u.uptime = time.Now()
+		if ok, err := UpdateData(db, u); !ok {
+			fmt.Printf("%s Update Data ERROR: %s\n", u.msId, err)
+		}
+	}
 }
