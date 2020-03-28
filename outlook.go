@@ -126,7 +126,10 @@ func OutLookGetMails(accesstoken string) bool {
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
-	if gjson.Get(string(content), "@odata.context").String() != "" {
+	fmt.Println(string(content))
+
+	//这里的.需要转义，否则会按路径的方式解析
+	if gjson.Get(string(content), "@odata\\.context").String() != "" {
 		return true
 	}
 	return false
