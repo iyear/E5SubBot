@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/robfig/cron/v3"
 	"github.com/spf13/viper"
 	"golang.org/x/net/proxy"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -56,21 +57,26 @@ func init() {
 }
 func main() {
 	BotStart()
-	//b.Handle(tb.OnText, func(m *tb.Message) {
-	//	b.Send(m.Sender, "hello world")
-	//})
-
-	//b.Start()
 }
 func BotStart() {
-	makeHandle()
+	MakeHandle()
+	TaskLaunch()
 	bot.Start()
 }
-func makeHandle() {
+func MakeHandle() {
 	bot.Handle("/start", bStart)
 	bot.Handle("/my", bMy)
 	bot.Handle("/bind", bBind)
+	bot.Handle("/unbind", bUnBind)
 	bot.Handle("/about", bAbout)
 	bot.Handle(tb.OnText, bOnText)
 	//bot.Handle(tb.InlineButton{Unique: ""})
+}
+func TaskLaunch() {
+	task := cron.New()
+	SignTask()
+	//每三小时执行一次
+	task.AddFunc("1 */3 * * *", SignTask)
+	//  */1 * * * *
+	task.Start()
 }

@@ -42,8 +42,6 @@ func bMy(m *tb.Message) {
 	data := QueryDataByTG(db, m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
-		//uJson := MarshalMSData(u)
-		//fmt.Println(uJson)
 		inlineBtn := tb.InlineButton{
 			Unique: u.msId,
 			Text:   gjson.Get(u.other, "alias").String(),
@@ -54,7 +52,6 @@ func bMy(m *tb.Message) {
 	}
 	bot.Send(m.Chat, "选择一个账户查看具体信息\n\n绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
 }
-
 func bMyInlineBtn(c *tb.Callback) {
 	//var inlineKeys [][]tb.InlineButton
 	//bot.Handle(&inlineBtn, bMyinlineBtn)
@@ -75,6 +72,31 @@ func bBind(m *tb.Message) {
 		UserStatus[m.Chat.ID] = USWillBind
 	}
 
+}
+func bUnBind(m *tb.Message) {
+	data := QueryDataByTG(db, m.Chat.ID)
+	var inlineKeys [][]tb.InlineButton
+	for _, u := range data {
+		inlineBtn := tb.InlineButton{
+			Unique: u.msId,
+			Text:   gjson.Get(u.other, "alias").String(),
+			Data:   u.msId,
+		}
+		bot.Handle(&inlineBtn, bUnBindInlineBtn)
+		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
+	}
+	bot.Send(m.Chat, "选择一个账户将其解绑\n\n当前绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
+}
+func bUnBindInlineBtn(c *tb.Callback) {
+	fmt.Println(c.Data)
+	if ok, _ := DelData(db, c.Data); !ok {
+		fmt.Println(c.Data + " UnBind ERROR")
+		bot.Send(c.Message.Chat, "解绑失败!")
+		return
+	}
+	fmt.Println(c.Data + " UnBind Success")
+	bot.Send(c.Message.Chat, "解绑成功!")
+	bot.Respond(c)
 }
 func bAbout(m *tb.Message) {
 	bot.Send(m.Sender, bStartContent)
@@ -99,8 +121,7 @@ func bOnText(m *tb.Message) {
 			} else {
 				bot.Send(m.Chat, info)
 			}
+			UserStatus[m.Chat.ID] = USNone
 		}
-	case USBind:
-
 	}
 }
