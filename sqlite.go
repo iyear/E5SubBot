@@ -66,9 +66,21 @@ func DelData(db *sql.DB, refreshToken string) (bool, error) {
 	}
 	return true, nil
 }
+func QueryDataByMS(db *sql.DB, msId string) MSData {
+	rows, err := db.Query("select  * from users where ms_id = ?", msId)
+	CheckErr(err)
+	defer rows.Close()
+	var refresht, othert, msidt string
+	var tgIdt int64
+	var uptimet time.Time
+	rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &othert)
+	//fmt.Println(string(tgNamet) + "=>" + uptimet.Format("2006-01-02 15:04:05"))
+	r := MSData{tgIdt, refresht, msidt, uptimet, othert}
+	return r
+}
 
 //query data by tg_id
-func QueryData(db *sql.DB, tgId int64) []MSData {
+func QueryDataByTG(db *sql.DB, tgId int64) []MSData {
 	rows, err := db.Query("select  * from users where tg_id = ?", tgId)
 	CheckErr(err)
 	var result = make([]MSData, 0)
