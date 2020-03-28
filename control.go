@@ -4,13 +4,21 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	tb "gopkg.in/tucnak/telebot.v2"
+	"strings"
 	"time"
 )
 
 //If Successfully return "",else return error information
 func BindUser(m *tb.Message) string {
 	fmt.Printf("%d Begin Bind\n", m.Chat.ID)
-	code := GetURLValue(m.Text, "code")
+	tmp := strings.Split(m.Text, " ")
+	fmt.Println("alias: " + tmp[1])
+	if len(tmp) != 2 {
+		fmt.Printf("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
+		return "授权格式错误"
+	}
+	alias := tmp[1]
+	code := GetURLValue(tmp[0], "code")
 	fmt.Println(code)
 	access, refresh := MSFirGetToken(code)
 	if refresh == "" {
@@ -32,8 +40,7 @@ func BindUser(m *tb.Message) string {
 	u.refreshToken = refresh
 	u.msId = gjson.Get(info, "id").String()
 	u.uptime = time.Now()
-	u.other = ""
-
+	u.other = SetJsonValue("{}", "alias", alias)
 	//MS User Is Exist
 	if MSUserIsExist(u.tgId, u.msId) {
 		fmt.Printf("%d Bind error:MSUserHasExisted\n", m.Chat.ID)
@@ -49,13 +56,13 @@ func BindUser(m *tb.Message) string {
 	return ""
 }
 func GetBindNum(tgId int64) int {
-	data := QueryData(db, tgId)
+	data := QueryDataByTG(db, tgId)
 	return len(data)
 }
 
 //return true => exist
 func MSUserIsExist(tgId int64, msId string) bool {
-	data := QueryData(db, tgId)
+	data := QueryDataByTG(db, tgId)
 	var res MSData
 	for _, res = range data {
 		if res.msId == msId {
