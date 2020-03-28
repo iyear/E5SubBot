@@ -6,6 +6,7 @@ import (
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -15,9 +16,10 @@ const (
 )
 
 var (
-	cliid   string
-	rediuri string
-	scope   string
+	cliId       string
+	redirectUri string
+	scope       string
+	authUrl     string
 )
 
 func init() {
@@ -27,9 +29,10 @@ func init() {
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-	cliid = viper.GetString("client_id")
-	rediuri = viper.GetString("redirect_uri")
-	scope = viper.GetString("scope")
+	authUrl = viper.GetString("auth_url")
+	cliId = GetURLValue(authUrl, "client_id")
+	redirectUri, _ = url.QueryUnescape(GetURLValue(authUrl, "redirect_uri"))
+	scope, _ = url.QueryUnescape(GetURLValue(authUrl, "scope"))
 	//refreshtoken := "xxxx"
 	//fmt.Println(MSGetUserInfo(MSGetToken(refreshtoken,"user.read mail.read")))
 	//code := "xxx"
@@ -41,11 +44,11 @@ func MSFirGetToken(code string) (access string, refresh string) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
-	r.Form.Add("client_id", cliid)
+	r.Form.Add("client_id", cliId)
 	r.Form.Add("grant_type", "authorization_code")
 	r.Form.Add("scope", scope)
 	r.Form.Add("code", code)
-	r.Form.Add("redirect_uri", rediuri)
+	r.Form.Add("redirect_uri", redirectUri)
 	body := strings.NewReader(r.Form.Encode())
 	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
 	resp, err := client.Do(req)
@@ -67,11 +70,11 @@ func MSGetToken(refreshtoken string) (access string) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
-	r.Form.Add("client_id", cliid)
+	r.Form.Add("client_id", cliId)
 	r.Form.Add("grant_type", "refresh_token")
 	r.Form.Add("scope", scope)
 	r.Form.Add("refresh_token", refreshtoken)
-	r.Form.Add("redirect_uri", rediuri)
+	r.Form.Add("redirect_uri", redirectUri)
 	body := strings.NewReader(r.Form.Encode())
 	fmt.Println(body)
 	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
