@@ -82,6 +82,22 @@ func QueryDataByMS(db *sql.DB, msId string) []MSData {
 	return result
 }
 
+func QueryDataAll(db *sql.DB) []MSData {
+	rows, err := db.Query("select  * from users ")
+	CheckErr(err)
+	var result = make([]MSData, 0)
+	defer rows.Close()
+	for rows.Next() {
+		var refresht, othert, msidt string
+		var tgIdt int64
+		var uptimet time.Time
+		rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &othert)
+		//fmt.Println(string(tgNamet) + "=>" + uptimet.Format("2006-01-02 15:04:05"))
+		result = append(result, MSData{tgIdt, refresht, msidt, uptimet, othert})
+	}
+	return result
+}
+
 //query data by tg_id
 func QueryDataByTG(db *sql.DB, tgId int64) []MSData {
 	rows, err := db.Query("select  * from users where tg_id = ?", tgId)
