@@ -38,16 +38,18 @@ func BindUser(m *tb.Message) string {
 	var u MSData
 	u.tgId = m.Chat.ID
 	u.refreshToken = refresh
-	u.msId = gjson.Get(info, "id").String()
+	//TG的Data传递最高64bytes,一些msid超过了报错BUTTON_DATA_INVALID (0)，采取md5
+	u.msId = Get16MD5Encode(gjson.Get(info, "id").String())
 	u.uptime = time.Now()
 	u.other = SetJsonValue("{}", "alias", alias)
+	//u.other = SetJsonValue(u.other, "sign", Get16MD5Encode(u.msId))
 	//MS User Is Exist
 	if MSUserIsExist(u.tgId, u.msId) {
 		fmt.Printf("%d Bind error:MSUserHasExisted\n", m.Chat.ID)
 		return "该ID对应的用户已经绑定过了"
 	}
 	//MS information has gotten
-	bot.Send(m.Chat, "MS_ID： "+u.msId+"\nuserPrincipalName： "+gjson.Get(info, "userPrincipalName").String()+"\ndisplayName： "+gjson.Get(info, "displayName").String()+"\n")
+	bot.Send(m.Chat, "MS_ID(MD5)： "+u.msId+"\nuserPrincipalName： "+gjson.Get(info, "userPrincipalName").String()+"\ndisplayName： "+gjson.Get(info, "displayName").String()+"\n")
 	if ok, err := AddData(db, u); !ok {
 		fmt.Printf("%d Bind error: %s\n", m.Chat.ID, err)
 		return "数据库写入错误"

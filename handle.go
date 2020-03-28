@@ -43,24 +43,21 @@ func bMy(m *tb.Message) {
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
-			Unique: u.msId,
+			Unique: "my" + u.msId,
 			Text:   gjson.Get(u.other, "alias").String(),
 			Data:   u.msId,
 		}
 		bot.Handle(&inlineBtn, bMyInlineBtn)
 		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
 	}
-	bot.Send(m.Chat, "选择一个账户查看具体信息\n\n绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
+	_, err := bot.Send(m.Chat, "选择一个账户查看具体信息\n\n绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
+	fmt.Println(err)
 }
 func bMyInlineBtn(c *tb.Callback) {
-	//var inlineKeys [][]tb.InlineButton
-	//bot.Handle(&inlineBtn, bMyinlineBtn)
-	//inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
-	//bot.EditReplyMarkup(tb.Editable(c.MessageID, int64(c.Sender.ID)))
 	fmt.Println(c.Data)
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
-	bot.Send(c.Message.Chat, "信息\n别名："+gjson.Get(u.other, "alias").String()+"\nMS_ID: "+u.msId+"\n最近更新时间: "+u.uptime.Format("2006-01-02 15:04:05"))
+	bot.Send(c.Message.Chat, "信息\n别名："+gjson.Get(u.other, "alias").String()+"\nMS_ID(MD5): "+u.msId+"\n最近更新时间: "+u.uptime.Format("2006-01-02 15:04:05"))
 	bot.Respond(c)
 }
 func bBind(m *tb.Message) {
@@ -78,7 +75,7 @@ func bUnBind(m *tb.Message) {
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
-			Unique: u.msId,
+			Unique: "unbind" + u.msId,
 			Text:   gjson.Get(u.other, "alias").String(),
 			Data:   u.msId,
 		}
@@ -89,12 +86,14 @@ func bUnBind(m *tb.Message) {
 }
 func bUnBindInlineBtn(c *tb.Callback) {
 	fmt.Println(c.Data)
-	if ok, _ := DelData(db, c.Data); !ok {
-		fmt.Println(c.Data + " UnBind ERROR")
+	r := QueryDataByMS(db, c.Data)
+	u := r[0]
+	if ok, _ := DelData(db, u.msId); !ok {
+		fmt.Println(u.msId + " UnBind ERROR")
 		bot.Send(c.Message.Chat, "解绑失败!")
 		return
 	}
-	fmt.Println(c.Data + " UnBind Success")
+	fmt.Println(u.msId + " UnBind Success")
 	bot.Send(c.Message.Chat, "解绑成功!")
 	bot.Respond(c)
 }

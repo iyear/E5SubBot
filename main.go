@@ -74,7 +74,7 @@ func MakeHandle() {
 }
 func TaskLaunch() {
 	task := cron.New()
-	SignTask()
+	//SignTask()
 	//每三小时执行一次
 	task.AddFunc("1 */3 * * *", SignTask)
 	//  */1 * * * *
