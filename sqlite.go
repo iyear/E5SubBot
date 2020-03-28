@@ -50,13 +50,13 @@ func AddData(db *sql.DB, u MSData) (bool, error) {
 }
 
 //del data by ms_id
-func DelData(db *sql.DB, refreshToken string) (bool, error) {
+func DelData(db *sql.DB, msId string) (bool, error) {
 	sqlString := `delete from users where ms_id=?`
 	stmt, err := db.Prepare(sqlString)
 	if err != nil {
 		return false, err
 	}
-	res, err := stmt.Exec(refreshToken)
+	res, err := stmt.Exec(msId)
 	if err != nil {
 		return false, err
 	}
