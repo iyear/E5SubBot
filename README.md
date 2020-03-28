@@ -1,13 +1,11 @@
 # E5SubBot
 
+![](https://img.shields.io/badge/language-go-blue.svg)
+![](https://img.shields.io/badge/license-GPL-lightgrey.svg)
 
+A Simple Telebot for E5 Renewal
 
-Github项目README.md模板  
-（项目背景/作用介绍）
-
-#### 示例:  
-把使用了该项目的案例放在这里。可以放APK下载链接，或者简单放几张截图。  
-（示例一开始就放出来，方便浏览者一眼就看出是不是想找的东西）
+DEMO: https://t.me/rssflowbot
 
 ### 特性（可选）
 - 特性A
