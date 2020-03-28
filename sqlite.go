@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/tidwall/gjson"
 	"time"
 )
 
@@ -97,6 +98,22 @@ func QueryDataAll(db *sql.DB) []MSData {
 	}
 	return result
 }
+func QueryDataBySign(db *sql.DB, tgId int64, sign string) []MSData {
+	rows, err := db.Query("select  * from users where tg_id = ?", tgId)
+	CheckErr(err)
+	var result = make([]MSData, 0)
+	defer rows.Close()
+	for rows.Next() {
+		var refresht, othert, msidt string
+		var tgIdt int64
+		var uptimet time.Time
+		rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &othert)
+		if gjson.Get(othert, "sign").String() == sign {
+			result = append(result, MSData{tgIdt, refresht, msidt, uptimet, othert})
+		}
+	}
+	return result
+}
 
 //query data by tg_id
 func QueryDataByTG(db *sql.DB, tgId int64) []MSData {
@@ -109,7 +126,6 @@ func QueryDataByTG(db *sql.DB, tgId int64) []MSData {
 		var tgIdt int64
 		var uptimet time.Time
 		rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &othert)
-		//fmt.Println(string(tgNamet) + "=>" + uptimet.Format("2006-01-02 15:04:05"))
 		result = append(result, MSData{tgIdt, refresht, msidt, uptimet, othert})
 	}
 	return result
