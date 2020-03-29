@@ -44,9 +44,19 @@ func init() {
 	Socks5 = viper.GetString("socks5")
 	//set bot
 	fmt.Println("Bot Settings……")
+	Poller := &tb.LongPoller{Timeout: 15 * time.Second}
+	spamProtected := tb.NewMiddlewarePoller(Poller, func(upd *tb.Update) bool {
+		if upd.Message == nil {
+			return true
+		}
+		if !upd.Message.Private() {
+			return false
+		}
+		return true
+	})
 	botsettings := tb.Settings{
 		Token:  BotToken,
-		Poller: &tb.LongPoller{Timeout: 10 * time.Second},
+		Poller: spamProtected,
 	}
 	//set socks5
 	if Socks5 != "" {
@@ -72,7 +82,8 @@ func main() {
 func BotStart() {
 	MakeHandle()
 	TaskLaunch()
-	fmt.Println("Bot Start……")
+	fmt.Println("Bot Start")
+	fmt.Println("------------")
 	bot.Start()
 }
 func MakeHandle() {
@@ -81,6 +92,7 @@ func MakeHandle() {
 	bot.Handle("/my", bMy)
 	bot.Handle("/bind", bBind)
 	bot.Handle("/unbind", bUnBind)
+	bot.Handle("/notice", bNotice)
 	bot.Handle("/help", bHelp)
 	bot.Handle(tb.OnText, bOnText)
 	//bot.Handle(tb.InlineButton{Unique: ""})

@@ -114,6 +114,10 @@ func bOnText(m *tb.Message) {
 		}
 	case USWillBind:
 		{
+			if !m.IsReply() {
+				bot.Send(m.Chat, "请通过回复方式绑定")
+				return
+			}
 			if GetBindNum(m.Chat.ID) == BindMaxNum {
 				bot.Send(m.Chat, "已经达到最大可绑定数")
 				return
@@ -128,4 +132,8 @@ func bOnText(m *tb.Message) {
 			UserStatus[m.Chat.ID] = USNone
 		}
 	}
+}
+func bNotice(m *tb.Message) {
+	viper.ReadInConfig()
+	bot.Send(m.Chat, viper.GetString("notice"))
 }

@@ -47,6 +47,7 @@ Linux:
 
 ```bash
 screen -S e5sub
+chmod 773 e5sub
 ./e5sub
 (Ctrl A+D)
 ```
