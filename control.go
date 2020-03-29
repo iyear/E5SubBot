@@ -79,6 +79,8 @@ func MSUserIsExist(tgId int64, msId string) bool {
 
 //SignTask
 func SignTask() {
+	fmt.Println("----Task Begin----")
+	fmt.Println("Time:" + time.Now().Format("2006-01-02 15:04:05"))
 	data := QueryDataAll(db)
 	for _, u := range data {
 		access := MSGetToken(u.refreshToken)
@@ -96,4 +98,5 @@ func SignTask() {
 			fmt.Printf("%s Update Data ERROR: %s\n", u.msId, err)
 		}
 	}
+	fmt.Println("----Task End----")
 }

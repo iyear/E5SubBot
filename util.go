@@ -10,10 +10,11 @@ import (
 	"strings"
 )
 
+//true=>no error
 func CheckErr(err error) bool {
 	if err != nil {
 		log.Println(err)
-		fmt.Println("error: ", err.Error())
+		fmt.Println("ERROR")
 		panic(err)
 		return false
 	}

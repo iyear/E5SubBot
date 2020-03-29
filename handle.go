@@ -9,7 +9,15 @@ import (
 )
 
 const (
-	bStartContent string = "欢迎使用E5SubBot!\n请输入命令以启用Bot"
+	bStartContent string = "欢迎使用E5SubBot!\n请输入\\help查看帮助"
+	bHelpContent  string = `
+	命令：
+	/my 查看已绑定账户信息
+	/bind  绑定新账户
+	/unbind 解绑账户
+	/help 帮助
+	详细使用方法请看：https://github.com/iyear/E5SubBot
+`
 )
 
 var (
@@ -40,10 +48,8 @@ func bStart(m *tb.Message) {
 }
 func bMy(m *tb.Message) {
 	data := QueryDataByTG(db, m.Chat.ID)
-	fmt.Println(data)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
-		fmt.Println(u)
 		inlineBtn := tb.InlineButton{
 			Unique: "my" + u.msId,
 			Text:   u.other,
@@ -52,11 +58,9 @@ func bMy(m *tb.Message) {
 		bot.Handle(&inlineBtn, bMyInlineBtn)
 		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
 	}
-	_, err := bot.Send(m.Chat, "选择一个账户查看具体信息\n\n绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
-	fmt.Println(err)
+	bot.Send(m.Chat, "选择一个账户查看具体信息\n\n绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
 }
 func bMyInlineBtn(c *tb.Callback) {
-	fmt.Println(c.Data)
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
 	bot.Send(c.Message.Chat, "信息\n别名："+u.other+"\nMS_ID(MD5): "+u.msId+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05"))
@@ -87,7 +91,6 @@ func bUnBind(m *tb.Message) {
 	bot.Send(m.Chat, "选择一个账户将其解绑\n\n当前绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
 }
 func bUnBindInlineBtn(c *tb.Callback) {
-	fmt.Println(c.Data)
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
 	if ok, _ := DelData(db, u.msId); !ok {
@@ -99,8 +102,8 @@ func bUnBindInlineBtn(c *tb.Callback) {
 	bot.Send(c.Message.Chat, "解绑成功!")
 	bot.Respond(c)
 }
-func bAbout(m *tb.Message) {
-	bot.Send(m.Sender, bStartContent)
+func bHelp(m *tb.Message) {
+	bot.Send(m.Sender, bHelpContent, &tb.SendOptions{DisableWebPagePreview: false})
 }
 func bOnText(m *tb.Message) {
 	switch UserStatus[m.Chat.ID] {

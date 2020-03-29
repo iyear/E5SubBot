@@ -55,7 +55,7 @@ func MSFirGetToken(code string) (access string, refresh string) {
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
+		fmt.Println("Fatal error ")
 	}
 	if gjson.Get(string(content), "token_type").String() == "Bearer" {
 		return gjson.Get(string(content), "access_token").String(), gjson.Get(string(content), "refresh_token").String()
@@ -76,15 +76,15 @@ func MSGetToken(refreshtoken string) (access string) {
 	r.Form.Add("refresh_token", refreshtoken)
 	r.Form.Add("redirect_uri", redirectUri)
 	body := strings.NewReader(r.Form.Encode())
-	fmt.Println(body)
+	//fmt.Println(body)
 	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
+		fmt.Println("Fatal error ")
 	}
-	fmt.Println(string(content))
+	//fmt.Println(string(content))
 	//fmt.Println(gjson.Get(string(content), "access_token").String())
 	if gjson.Get(string(content), "token_type").String() == "Bearer" {
 		return gjson.Get(string(content), "access_token").String()
@@ -100,7 +100,7 @@ func MSGetUserInfo(accesstoken string) (json string) {
 	//r.Header.Set("Host","graph.microsoft.com")
 	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me", nil)
 	if err != nil {
-		fmt.Println("MSGetUserInfo ERROR ", err.Error())
+		fmt.Println("MSGetUserInfo ERROR ")
 		return ""
 	}
 	req.Header.Set("Authorization", accesstoken)
@@ -119,15 +119,14 @@ func OutLookGetMails(accesstoken string) bool {
 	//r.Header.Set("Host","graph.microsoft.com")
 	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me/messages", nil)
 	if err != nil {
-		fmt.Println("MSGetMils ERROR ", err.Error())
+		fmt.Println("MSGetMils ERROR ")
 		return false
 	}
 	req.Header.Set("Authorization", accesstoken)
 	resp, _ := client.Do(req)
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(content))
-
+	//fmt.Println(string(content))
 	//这里的.需要转义，否则会按路径的方式解析
 	if gjson.Get(string(content), "@odata\\.context").String() != "" {
 		return true

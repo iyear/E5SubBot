@@ -30,8 +30,11 @@ func init() {
 	path := strings.Join([]string{user, ":", pwd, "@tcp(", host, ":", port, ")/", database, "?charset=utf8"}, "")
 	//fmt.Println(path)
 	db, err = sql.Open(dbDriverName, path)
-	fmt.Println(db.Ping())
-	CheckErr(err)
+	if !CheckErr(err) {
+		fmt.Println("Connect MySQL ERROR:")
+		return
+	}
+	fmt.Println("Connect MySQL Success!")
 	CreateTB(db)
 }
 
