@@ -19,8 +19,8 @@ var (
 )
 
 const (
-	dbDriverName = "sqlite3"
-	dbName       = "./data.db"
+	dbDriverName = "mysql"
+	//dbName       = "./data.db"
 )
 
 func init() {
@@ -50,10 +50,6 @@ func init() {
 	bot, err = tb.NewBot(botsettings)
 	CheckErr(err)
 
-	//sqlite init
-	db, err = sql.Open(dbDriverName, dbName)
-	CheckErr(err)
-	CreateTB(db)
 }
 func main() {
 	BotStart()

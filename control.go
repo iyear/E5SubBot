@@ -40,8 +40,9 @@ func BindUser(m *tb.Message) string {
 	u.refreshToken = refresh
 	//TG的Data传递最高64bytes,一些msid超过了报错BUTTON_DATA_INVALID (0)，采取md5
 	u.msId = Get16MD5Encode(gjson.Get(info, "id").String())
-	u.uptime = time.Now()
-	u.other = SetJsonValue("{}", "alias", alias)
+	u.uptime = time.Now().Unix()
+	fmt.Println(u.uptime)
+	u.other = alias
 	//u.other = SetJsonValue(u.other, "sign", Get16MD5Encode(u.msId))
 	//MS User Is Exist
 	if MSUserIsExist(u.tgId, u.msId) {
@@ -90,7 +91,7 @@ func SignTask() {
 			continue
 		}
 		fmt.Println(u.msId + " Sign OK!")
-		u.uptime = time.Now()
+		u.uptime = time.Now().Unix()
 		if ok, err := UpdateData(db, u); !ok {
 			fmt.Printf("%s Update Data ERROR: %s\n", u.msId, err)
 		}

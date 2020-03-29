@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"github.com/tidwall/gjson"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"strconv"
+	"time"
 )
 
 const (
@@ -40,11 +40,13 @@ func bStart(m *tb.Message) {
 }
 func bMy(m *tb.Message) {
 	data := QueryDataByTG(db, m.Chat.ID)
+	fmt.Println(data)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
+		fmt.Println(u)
 		inlineBtn := tb.InlineButton{
 			Unique: "my" + u.msId,
-			Text:   gjson.Get(u.other, "alias").String(),
+			Text:   u.other,
 			Data:   u.msId,
 		}
 		bot.Handle(&inlineBtn, bMyInlineBtn)
@@ -57,7 +59,7 @@ func bMyInlineBtn(c *tb.Callback) {
 	fmt.Println(c.Data)
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
-	bot.Send(c.Message.Chat, "信息\n别名："+gjson.Get(u.other, "alias").String()+"\nMS_ID(MD5): "+u.msId+"\n最近更新时间: "+u.uptime.Format("2006-01-02 15:04:05"))
+	bot.Send(c.Message.Chat, "信息\n别名："+u.other+"\nMS_ID(MD5): "+u.msId+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05"))
 	bot.Respond(c)
 }
 func bBind(m *tb.Message) {
@@ -76,7 +78,7 @@ func bUnBind(m *tb.Message) {
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
 			Unique: "unbind" + u.msId,
-			Text:   gjson.Get(u.other, "alias").String(),
+			Text:   u.other,
 			Data:   u.msId,
 		}
 		bot.Handle(&inlineBtn, bUnBindInlineBtn)

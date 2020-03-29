@@ -3,19 +3,36 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
-	"time"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/spf13/viper"
+	"strings"
 )
 
 type MSData struct {
 	tgId         int64
 	refreshToken string
 	msId         string
-	uptime       time.Time
+	uptime       int64
 	other        string
 }
 
 func init() {
+	var err error
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	err = viper.ReadInConfig()
+	CheckErr(err)
+	host := viper.GetString("mysql.host")
+	user := viper.GetString("mysql.user")
+	port := viper.GetString("mysql.port")
+	pwd := viper.GetString("mysql.user")
+	database := viper.GetString("mysql.database")
+	path := strings.Join([]string{user, ":", pwd, "@tcp(", host, ":", port, ")/", database, "?charset=utf8"}, "")
+	//fmt.Println(path)
+	db, err = sql.Open(dbDriverName, path)
+	fmt.Println(db.Ping())
+	CheckErr(err)
+	CreateTB(db)
 }
 
 //update data by msId
@@ -72,9 +89,10 @@ func QueryDataByMS(db *sql.DB, msId string) []MSData {
 	var result = make([]MSData, 0)
 	defer rows.Close()
 	for rows.Next() {
-		var refresht, othert, msidt string
-		var tgIdt int64
-		var uptimet time.Time
+		var (
+			tgIdt, uptimet          int64
+			refresht, othert, msidt string
+		)
 		rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &othert)
 		//fmt.Println(string(tgNamet) + "=>" + uptimet.Format("2006-01-02 15:04:05"))
 		result = append(result, MSData{tgIdt, refresht, msidt, uptimet, othert})
@@ -89,8 +107,7 @@ func QueryDataAll(db *sql.DB) []MSData {
 	defer rows.Close()
 	for rows.Next() {
 		var refresht, othert, msidt string
-		var tgIdt int64
-		var uptimet time.Time
+		var tgIdt, uptimet int64
 		rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &othert)
 		//fmt.Println(string(tgNamet) + "=>" + uptimet.Format("2006-01-02 15:04:05"))
 		result = append(result, MSData{tgIdt, refresht, msidt, uptimet, othert})
@@ -106,8 +123,7 @@ func QueryDataByTG(db *sql.DB, tgId int64) []MSData {
 	defer rows.Close()
 	for rows.Next() {
 		var refresht, othert, msidt string
-		var tgIdt int64
-		var uptimet time.Time
+		var tgIdt, uptimet int64
 		rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &othert)
 		result = append(result, MSData{tgIdt, refresht, msidt, uptimet, othert})
 	}
@@ -116,12 +132,12 @@ func QueryDataByTG(db *sql.DB, tgId int64) []MSData {
 func CreateTB(db *sql.DB) (bool, error) {
 
 	sqltable := `
-    create table if not exists "users"
+    create table if not exists users
 	(
 	tg_id INTEGER,
 	refresh_token TEXT,
 	ms_id TEXT,
-	uptime DATE,
+	uptime INTEGER,
 	other TEXT
 	);`
 	_, err := db.Exec(sqltable)
