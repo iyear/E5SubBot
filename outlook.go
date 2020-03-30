@@ -11,15 +11,10 @@ import (
 )
 
 const (
-	MsApiUrl string = "https://login.microsoftonline.com"
-	MsGraUrl string = "https://graph.microsoft.com"
-)
-
-var (
-	cliId       string
-	redirectUri string
-	scope       string
-	authUrl     string
+	MsApiUrl    string = "https://login.microsoftonline.com"
+	MsGraUrl    string = "https://graph.microsoft.com"
+	redirectUri string = "http://localhost/e5sub"
+	scope       string = "openid offline_access mail.read user.read"
 )
 
 func init() {
@@ -29,22 +24,24 @@ func init() {
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-	authUrl = viper.GetString("auth_url")
-	cliId = GetURLValue(authUrl, "client_id")
-	redirectUri, _ = url.QueryUnescape(GetURLValue(authUrl, "redirect_uri"))
-	scope, _ = url.QueryUnescape(GetURLValue(authUrl, "scope"))
-	//refreshtoken := "xxxx"
-	//fmt.Println(MSGetUserInfo(MSGetToken(refreshtoken,"user.read mail.read")))
-	//code := "xxx"
-	//fmt.Println(MSFirGetToken(code))
+}
+func MSGetAuthUrl(cid string) string {
+	return "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=" + cid + "&response_type=code&redirect_uri=" + url.QueryEscape(redirectUri) + "&response_mode=query&scope=" + url.QueryEscape(scope)
+}
+func MSGetReAppUrl() string {
+	ru := "https://developer.microsoft.com/en-us/graph/quick-start?appID=_appId_&appName=_appName_&redirectUrl=http://localhost:8000&platform=option-windowsuniversal"
+	deeplink := "/quickstart/graphIO?publicClientSupport=false&appName=e5sub&redirectUrl=http://localhost/e5sub&allowImplicitFlow=false&ru=" + url.QueryEscape(ru)
+	app_url := "https://apps.dev.microsoft.com/?deepLink=" + url.QueryEscape(deeplink)
+	return app_url
 }
 
 //return access_token and refresh_token
-func MSFirGetToken(code string) (access string, refresh string) {
+func MSFirGetToken(code, cid, cse string) (access string, refresh string) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
-	r.Form.Add("client_id", cliId)
+	r.Form.Add("client_id", cid)
+	r.Form.Add("client_secret", cse)
 	r.Form.Add("grant_type", "authorization_code")
 	r.Form.Add("scope", scope)
 	r.Form.Add("code", code)
@@ -54,6 +51,7 @@ func MSFirGetToken(code string) (access string, refresh string) {
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(content))
 	if err != nil {
 		fmt.Println("Fatal error ")
 	}
@@ -66,11 +64,12 @@ func MSFirGetToken(code string) (access string, refresh string) {
 }
 
 //return access_token
-func MSGetToken(refreshtoken string) (access string) {
+func MSGetToken(refreshtoken, cid, cse string) (access string) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
-	r.Form.Add("client_id", cliId)
+	r.Form.Add("client_id", cid)
+	r.Form.Add("client_secret", cse)
 	r.Form.Add("grant_type", "refresh_token")
 	r.Form.Add("scope", scope)
 	r.Form.Add("refresh_token", refreshtoken)

@@ -9,18 +9,18 @@ import (
 )
 
 //If Successfully return "",else return error information
-func BindUser(m *tb.Message) string {
+func BindUser(m *tb.Message, cid, cse string) string {
 	fmt.Printf("%d Begin Bind\n", m.Chat.ID)
 	tmp := strings.Split(m.Text, " ")
-	fmt.Println("alias: " + tmp[1])
 	if len(tmp) != 2 {
 		fmt.Printf("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
 		return "授权格式错误"
 	}
+	fmt.Println("alias: " + tmp[1])
 	alias := tmp[1]
 	code := GetURLValue(tmp[0], "code")
 	fmt.Println(code)
-	access, refresh := MSFirGetToken(code)
+	access, refresh := MSFirGetToken(code, cid, cse)
 	if refresh == "" {
 		fmt.Printf("%d Bind error:GetRefreshToken\n", m.Chat.ID)
 		return "获取RefreshToken失败"
@@ -42,12 +42,15 @@ func BindUser(m *tb.Message) string {
 	u.msId = Get16MD5Encode(gjson.Get(info, "id").String())
 	u.uptime = time.Now().Unix()
 	fmt.Println(u.uptime)
-	u.other = alias
+	u.alias = alias
+	u.clientId = cid
+	u.clientSecret = cse
+	u.other = ""
 	//u.other = SetJsonValue(u.other, "sign", Get16MD5Encode(u.msId))
 	//MS User Is Exist
-	if MSUserIsExist(u.tgId, u.msId) {
+	if MSAppIsExist(u.tgId, u.clientId) {
 		fmt.Printf("%d Bind error:MSUserHasExisted\n", m.Chat.ID)
-		return "该ID对应的用户已经绑定过了"
+		return "该应用已经绑定过了，无需重复绑定"
 	}
 	//MS information has gotten
 	bot.Send(m.Chat, "MS_ID(MD5)： "+u.msId+"\nuserPrincipalName： "+gjson.Get(info, "userPrincipalName").String()+"\ndisplayName： "+gjson.Get(info, "displayName").String()+"\n")
@@ -66,11 +69,11 @@ func GetBindNum(tgId int64) int {
 }
 
 //return true => exist
-func MSUserIsExist(tgId int64, msId string) bool {
+func MSAppIsExist(tgId int64, clientId string) bool {
 	data := QueryDataByTG(db, tgId)
 	var res MSData
 	for _, res = range data {
-		if res.msId == msId {
+		if res.msId == clientId {
 			return true
 		}
 	}
@@ -83,7 +86,7 @@ func SignTask() {
 	fmt.Println("Time:" + time.Now().Format("2006-01-02 15:04:05"))
 	data := QueryDataAll(db)
 	for _, u := range data {
-		access := MSGetToken(u.refreshToken)
+		access := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
 		if access == "" {
 			fmt.Println(u.msId + "Sign ERROR:AccessTokenGet")
 			continue

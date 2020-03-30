@@ -27,13 +27,14 @@ E5订阅为开发者订阅，只要调用相关API就有可能续期
 
 ## 使用方法
 
-在机器人对话框输入**/bind**，进入授权页面，用E5订阅的账户登录。
+1. 在机器人对话框输入 **/bind**
+2. 注册应用，使用E5主账号或同域账号登录
+3. 复制client_secret和client_id，以 `client_id client_secret`格式回复
+4. 获得授权链接，使用E5主账号或同域账号登录
+5. 授权后会跳转至`http://localhost/e5sub……`
+6. 复制整个浏览框内容，在机器人对话框回复 `链接+空格+别名(用于管理账户)`
 
-授权后会跳转至`http://localhost/e5sub……`
-
-复制整个浏览框内容，在机器人对话框回复 `链接+空格+别名(用于管理账户)`
-
-例如：`http://localhost/e5sub/?code=abcd mye5`，等待机器人绑定后即完成
+例如：`http://localhost/e5sub/?code=abcd MyE5`，等待机器人绑定后即完成
 
 ## 自行部署
 
@@ -70,8 +71,6 @@ go build main.go
 bot_token: xxxxx
 #不需要socks5代理删去即可
 socks5: 127.0.0.1:1080
-#auth_url需要自己去Azure注册应用配置
-auth_url: https://login.microsoftonline.com/common/oauth2/v2.0/authorize?……
 #最大可绑定数
 bindmax: 3
 #mysql配置
@@ -109,17 +108,11 @@ Go在寒假里看过一段时间的《Golang核心编程》+Go官方的教程，
 
 自行部署可能会有报错崩溃什么的，谅解一下吧。。用DEMO也行
 
-如果有兴趣的大佬欢迎加入群组交流，但有些东西我可能听不太懂。
-
 ------
 
 一开始用的sqlite数据库，加载的是<https://github.com/mattn/go-sqlite3> 驱动，结果等我写完了，CGO各种编译错误。
 
 最后实在折腾不起来，只好改用MySQL（VPS上都是一键，Win上装MySQL也折腾了半天）
-
-------
-
-虽然自知写的垃圾，但也是第一个正式的Go Project……
 
 ## License
 

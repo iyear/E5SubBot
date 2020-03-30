@@ -90,7 +90,7 @@ func MakeHandle() {
 	fmt.Println("Make Handle……")
 	bot.Handle("/start", bStart)
 	bot.Handle("/my", bMy)
-	bot.Handle("/bind", bBind)
+	bot.Handle("/bind", bBind1)
 	bot.Handle("/unbind", bUnBind)
 	bot.Handle("/notice", bNotice)
 	bot.Handle("/help", bHelp)
