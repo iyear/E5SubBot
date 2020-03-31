@@ -40,7 +40,7 @@ E5订阅为开发者订阅，只要调用相关API就有可能续期
 
 #### 二进制文件
 
-在Releases页面下载对应系统的二进制文件，上传至服务器
+在[Releases](https://github.com/iyear/E5SubBot/releases)页面下载对应系统的二进制文件，上传至服务器
 
 Windows: 双击`.exe`并保持后台运行
 
