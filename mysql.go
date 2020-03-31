@@ -28,7 +28,7 @@ func init() {
 	host := viper.GetString("mysql.host")
 	user := viper.GetString("mysql.user")
 	port := viper.GetString("mysql.port")
-	pwd := viper.GetString("mysql.user")
+	pwd := viper.GetString("mysql.password")
 	database := viper.GetString("mysql.database")
 	path := strings.Join([]string{user, ":", pwd, "@tcp(", host, ":", port, ")/", database, "?charset=utf8"}, "")
 	//fmt.Println(path)
