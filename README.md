@@ -42,7 +42,7 @@ E5订阅为开发者订阅，只要调用相关API就有可能续期
 
 在[Releases](https://github.com/iyear/E5SubBot/releases)页面下载对应系统的二进制文件，上传至服务器
 
-Windows: 双击`.exe`并保持后台运行
+Windows: 在cmd中启动e5sub.exe
 
 Linux: 
 
@@ -63,7 +63,7 @@ go build main.go
 
 ## 部署配置
 
-在根目录下创建`config.yml`
+在根目录下创建`config.yml`，编码为UTF-8
 
 配置模板
 
