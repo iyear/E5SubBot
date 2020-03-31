@@ -19,7 +19,7 @@ func BindUser(m *tb.Message, cid, cse string) string {
 	fmt.Println("alias: " + tmp[1])
 	alias := tmp[1]
 	code := GetURLValue(tmp[0], "code")
-	fmt.Println(code)
+	//fmt.Println(code)
 	access, refresh := MSFirGetToken(code, cid, cse)
 	if refresh == "" {
 		fmt.Printf("%d Bind error:GetRefreshToken\n", m.Chat.ID)
@@ -29,7 +29,7 @@ func BindUser(m *tb.Message, cid, cse string) string {
 	//token has gotten
 	bot.Send(m.Chat, "Token获取成功!")
 	info := MSGetUserInfo(access)
-	fmt.Printf("TGID:%d Refresh Token: %s\n", m.Chat.ID, refresh)
+	//fmt.Printf("TGID:%d Refresh Token: %s\n", m.Chat.ID, refresh)
 	if info == "" {
 		fmt.Printf("%d Bind error:Getinfo\n", m.Chat.ID)
 		return "获取用户信息错误"
@@ -46,7 +46,6 @@ func BindUser(m *tb.Message, cid, cse string) string {
 	u.clientId = cid
 	u.clientSecret = cse
 	u.other = ""
-	//u.other = SetJsonValue(u.other, "sign", Get16MD5Encode(u.msId))
 	//MS User Is Exist
 	if MSAppIsExist(u.tgId, u.clientId) {
 		fmt.Printf("%d Bind error:MSUserHasExisted\n", m.Chat.ID)

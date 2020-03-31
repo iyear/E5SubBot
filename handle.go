@@ -56,7 +56,6 @@ func bMy(m *tb.Message) {
 	data := QueryDataByTG(db, m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
-		fmt.Println(u)
 		inlineBtn := tb.InlineButton{
 			Unique: "my" + u.msId,
 			Text:   u.alias,

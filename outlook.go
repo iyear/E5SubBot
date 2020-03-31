@@ -96,7 +96,6 @@ func MSGetToken(refreshtoken, cid, cse string) (access string) {
 //Get User's Information
 func MSGetUserInfo(accesstoken string) (json string) {
 	client := http.Client{}
-	//r.Header.Set("Host","graph.microsoft.com")
 	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me", nil)
 	if err != nil {
 		fmt.Println("MSGetUserInfo ERROR ")
@@ -107,7 +106,7 @@ func MSGetUserInfo(accesstoken string) (json string) {
 	defer resp.Body.Close()
 	content, _ := ioutil.ReadAll(resp.Body)
 	if gjson.Get(string(content), "id").String() != "" {
-		fmt.Println("UserName: " + gjson.Get(string(content), "displayName").String())
+		//fmt.Println("UserName: " + gjson.Get(string(content), "displayName").String())
 		return string(content)
 	}
 	return ""
@@ -115,7 +114,6 @@ func MSGetUserInfo(accesstoken string) (json string) {
 
 func OutLookGetMails(accesstoken string) bool {
 	client := http.Client{}
-	//r.Header.Set("Host","graph.microsoft.com")
 	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me/messages", nil)
 	if err != nil {
 		fmt.Println("MSGetMils ERROR ")

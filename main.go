@@ -95,7 +95,6 @@ func MakeHandle() {
 	bot.Handle("/notice", bNotice)
 	bot.Handle("/help", bHelp)
 	bot.Handle(tb.OnText, bOnText)
-	//bot.Handle(tb.InlineButton{Unique: ""})
 }
 func TaskLaunch() {
 	fmt.Println("Begin First SignTask……")
