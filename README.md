@@ -39,6 +39,7 @@ E5订阅为开发者订阅，只要调用相关API就有可能续期
 ## 自行部署
 需要MySQL>=5.5版本(开发本地环境是5.5，高的低的没测试过，应该也可以)
 
+Bot创建教程:[Google](https://www.google.com/search?q=telegram+Bot%E5%88%9B%E5%BB%BA%E6%95%99%E7%A8%8B)
 #### 二进制文件
 
 在[Releases](https://github.com/iyear/E5SubBot/releases)页面下载对应系统的二进制文件，上传至服务器
@@ -68,6 +69,7 @@ go build main.go
 配置模板
 
 ```yaml
+#更换为自己的BotToken
 bot_token: xxxxx
 #不需要socks5代理删去即可
 socks5: 127.0.0.1:1080
@@ -75,7 +77,7 @@ socks5: 127.0.0.1:1080
 notice: "第一行\n第二行"
 #最大可绑定数
 bindmax: 3
-#mysql配置
+#mysql配置，请提前创建数据库
 mysql:
   host: 127.0.0.1
   port: 3306
