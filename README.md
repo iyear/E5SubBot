@@ -69,11 +69,12 @@ go build main.go
 配置模板
 
 ```yaml
+#bindmax,notice可热更新，直接更新config.yml保存即可
 #更换为自己的BotToken
 bot_token: xxxxx
 #不需要socks5代理删去即可
 socks5: 127.0.0.1:1080
-#公告，/notice触发，\n换行,""别删
+#公告，合并至/help
 notice: "第一行\n第二行"
 #最大可绑定数
 bindmax: 3
