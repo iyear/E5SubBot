@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	tb "gopkg.in/tucnak/telebot.v2"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -72,7 +73,7 @@ func MSAppIsExist(tgId int64, clientId string) bool {
 	data := QueryDataByTG(db, tgId)
 	var res MSData
 	for _, res = range data {
-		if res.msId == clientId {
+		if res.clientId == clientId {
 			return true
 		}
 	}
@@ -84,20 +85,37 @@ func SignTask() {
 	fmt.Println("----Task Begin----")
 	fmt.Println("Time:" + time.Now().Format("2006-01-02 15:04:05"))
 	data := QueryDataAll(db)
+	fmt.Println("Start Sign")
 	for _, u := range data {
 		access := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
 		if access == "" {
-			fmt.Println(u.msId + "Sign ERROR:AccessTokenGet")
+			fmt.Println(u.msId + " Sign ERROR:AccessTokenGet")
 			continue
 		}
 		if !OutLookGetMails(access) {
-			fmt.Println(u.msId + "Sign ERROR:ReadMails")
+			fmt.Println(u.msId + " Sign ERROR:ReadMails")
 			continue
 		}
-		fmt.Println(u.msId + " Sign OK!")
 		u.uptime = time.Now().Unix()
 		if ok, err := UpdateData(db, u); !ok {
 			fmt.Printf("%s Update Data ERROR: %s\n", u.msId, err)
+			continue
+		}
+		fmt.Println(u.msId + " Sign OK!")
+		UserSignOk[u.tgId]++
+	}
+	fmt.Println("Sign End,Start Send")
+	var isSend map[int64]bool
+	isSend = make(map[int64]bool)
+	for _, u := range data {
+		if !isSend[u.tgId] {
+			chat, err := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
+			if err != nil {
+				fmt.Println("Send Result ERROR")
+				continue
+			}
+			bot.Send(chat, "签到反馈\n时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(UserSignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)))
+			isSend[u.tgId] = true
 		}
 	}
 	fmt.Println("----Task End----")

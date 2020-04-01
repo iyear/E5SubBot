@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"strconv"
@@ -10,23 +11,26 @@ import (
 )
 
 const (
-	bStartContent string = "欢迎使用E5SubBot!\n请输入\\help查看帮助"
+	bStartContent string = "欢迎使用E5SubBot!"
 	bHelpContent  string = `
 	命令：
-	/notice 查看最新公告
 	/my 查看已绑定账户信息
 	/bind  绑定新账户
 	/unbind 解绑账户
 	/help 帮助
-	详细使用方法请看：https://github.com/iyear/E5SubBot
+
+	源码及使用方法：https://github.com/iyear/E5SubBot
 `
 )
 
 var (
 	UserStatus  map[int64]int
+	UserSignOk  map[int64]int
 	UserCid     map[int64]string
 	UserCSecret map[int64]string
 	BindMaxNum  int
+	notice      string
+	admins      []int64
 )
 
 const (
@@ -43,6 +47,13 @@ func init() {
 	CheckErr(err)
 
 	BindMaxNum = viper.GetInt("bindmax")
+	notice = viper.GetString("notice")
+
+	viper.WatchConfig()
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		BindMaxNum = viper.GetInt("bindmax")
+		notice = viper.GetString("notice")
+	})
 
 	UserStatus = make(map[int64]int)
 	UserCid = make(map[int64]string)
@@ -50,7 +61,7 @@ func init() {
 }
 func bStart(m *tb.Message) {
 	bot.Send(m.Sender, bStartContent)
-	bNotice(m)
+	bHelp(m)
 }
 func bMy(m *tb.Message) {
 	data := QueryDataByTG(db, m.Chat.ID)
@@ -90,7 +101,7 @@ func bBind2(m *tb.Message) {
 		bot.Send(m.Chat, "错误的格式")
 		return
 	}
-	fmt.Println("client_id: " + tmp[0] + " client_secret" + tmp[1])
+	fmt.Println("client_id: " + tmp[0] + " client_secret: " + tmp[1])
 	cid := tmp[0]
 	cse := tmp[1]
 	bot.Send(m.Chat, "授权账户： [点击直达]("+MSGetAuthUrl(cid)+")", tb.ModeMarkdown)
@@ -128,7 +139,7 @@ func bUnBindInlineBtn(c *tb.Callback) {
 	bot.Respond(c)
 }
 func bHelp(m *tb.Message) {
-	bot.Send(m.Sender, bHelpContent, &tb.SendOptions{DisableWebPagePreview: false})
+	bot.Send(m.Sender, bHelpContent+"\n"+notice, &tb.SendOptions{DisableWebPagePreview: false})
 }
 func bOnText(m *tb.Message) {
 	switch UserStatus[m.Chat.ID] {
@@ -165,8 +176,4 @@ func bOnText(m *tb.Message) {
 			UserStatus[m.Chat.ID] = USNone
 		}
 	}
-}
-func bNotice(m *tb.Message) {
-	viper.ReadInConfig()
-	bot.Send(m.Chat, viper.GetString("notice"))
 }

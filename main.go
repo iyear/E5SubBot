@@ -35,6 +35,8 @@ const (
 func init() {
 	//read config
 	fmt.Println(logo)
+	//read config
+	fmt.Println(logo)
 	fmt.Println("Read Config……")
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
@@ -92,17 +94,15 @@ func MakeHandle() {
 	bot.Handle("/my", bMy)
 	bot.Handle("/bind", bBind1)
 	bot.Handle("/unbind", bUnBind)
-	bot.Handle("/notice", bNotice)
 	bot.Handle("/help", bHelp)
 	bot.Handle(tb.OnText, bOnText)
 }
 func TaskLaunch() {
-	fmt.Println("Begin First SignTask……")
 	task := cron.New()
-	SignTask()
 	//每三小时执行一次
-	task.AddFunc("1 */3 * * *", SignTask)
-	//  */1 * * * *
+	task.AddFunc("*/1 * * * *", SignTask)
+	//  */1 * * * *    1 */3 * * *
 	fmt.Println("Cron Task Start……")
 	task.Start()
+	defer task.Stop()
 }

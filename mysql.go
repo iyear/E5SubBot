@@ -48,11 +48,10 @@ func UpdateData(db *sql.DB, u MSData) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	res, err := stmt.Exec(u.tgId, u.refreshToken, u.uptime, u.alias, u.clientId, u.clientSecret, u.other, u.msId)
+	_, err = stmt.Exec(u.tgId, u.refreshToken, u.uptime, u.alias, u.clientId, u.clientSecret, u.other, u.msId)
 	if err != nil {
 		return false, err
 	}
-	fmt.Println("Update Data Successd:", res)
 	return true, nil
 }
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
@@ -17,14 +16,6 @@ const (
 	scope       string = "openid offline_access mail.read user.read"
 )
 
-func init() {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(fmt.Errorf("Fatal error config file: %s \n", err))
-	}
-}
 func MSGetAuthUrl(cid string) string {
 	return "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=" + cid + "&response_type=code&redirect_uri=" + url.QueryEscape(redirectUri) + "&response_mode=query&scope=" + url.QueryEscape(scope)
 }
