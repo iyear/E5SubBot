@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var SignOk map[int64]int
+
 //If Successfully return "",else return error information
 func BindUser(m *tb.Message, cid, cse string) string {
 	fmt.Printf("%d Begin Bind\n", m.Chat.ID)
@@ -79,9 +81,14 @@ func MSAppIsExist(tgId int64, clientId string) bool {
 	}
 	return false
 }
+func bTask(m *tb.Message) {
+	SignTask()
+}
 
 //SignTask
 func SignTask() {
+	var SignOk map[int64]int
+	SignOk = make(map[int64]int)
 	fmt.Println("----Task Begin----")
 	fmt.Println("Time:" + time.Now().Format("2006-01-02 15:04:05"))
 	data := QueryDataAll(db)
@@ -102,7 +109,7 @@ func SignTask() {
 			continue
 		}
 		fmt.Println(u.msId + " Sign OK!")
-		UserSignOk[u.tgId]++
+		SignOk[u.tgId]++
 	}
 	fmt.Println("Sign End,Start Send")
 	var isSend map[int64]bool
@@ -114,7 +121,7 @@ func SignTask() {
 				fmt.Println("Send Result ERROR")
 				continue
 			}
-			bot.Send(chat, "签到反馈\n时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(UserSignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)))
+			bot.Send(chat, "任务反馈\n时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)))
 			isSend[u.tgId] = true
 		}
 	}
