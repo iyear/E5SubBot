@@ -42,7 +42,6 @@ func MSFirGetToken(code, cid, cse string) (access string, refresh string) {
 	resp, err := client.Do(req)
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(content))
 	if err != nil {
 		fmt.Println("Fatal error ")
 	}
