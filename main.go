@@ -29,14 +29,11 @@ const (
  | |____ ___) |___) | |_| | |_) | |_) | (_) | |_ 
  |______|____/_____/ \__,_|_.__/|____/ \___/ \__|
 `
-	//dbName       = "./data.db"
 )
 
 func init() {
-	//read config
 	fmt.Println(logo)
 	//read config
-	fmt.Println(logo)
 	fmt.Println("Read Config……")
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
@@ -100,7 +97,7 @@ func MakeHandle() {
 func TaskLaunch() {
 	task := cron.New()
 	//每三小时执行一次
-	task.AddFunc("*/1 * * * *", SignTask)
+	task.AddFunc("1 */3 * * *", SignTask)
 	//  */1 * * * *    1 */3 * * *
 	fmt.Println("Cron Task Start……")
 	task.Start()
