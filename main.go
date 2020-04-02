@@ -89,6 +89,7 @@ func MakeHandle() {
 	fmt.Println("Make Handle……")
 	bot.Handle("/start", bStart)
 	bot.Handle("/my", bMy)
+	bot.Handle("/task", bTask)
 	bot.Handle("/bind", bBind1)
 	bot.Handle("/unbind", bUnBind)
 	bot.Handle("/help", bHelp)
@@ -97,9 +98,8 @@ func MakeHandle() {
 func TaskLaunch() {
 	task := cron.New()
 	//每三小时执行一次
-	task.AddFunc("1 */3 * * *", SignTask)
+	task.AddFunc(viper.GetString("cron"), SignTask)
 	//  */1 * * * *    1 */3 * * *
 	fmt.Println("Cron Task Start……")
 	task.Start()
-	defer task.Stop()
 }
