@@ -18,19 +18,18 @@ const (
 	/bind  绑定新账户
 	/unbind 解绑账户
 	/help 帮助
-
+	/task 手动执行一次任务(管理员)
 	源码及使用方法：https://github.com/iyear/E5SubBot
 `
 )
 
 var (
 	UserStatus  map[int64]int
-	UserSignOk  map[int64]int
 	UserCid     map[int64]string
 	UserCSecret map[int64]string
 	BindMaxNum  int
 	notice      string
-	admins      []int64
+	admin       []int64
 )
 
 const (
@@ -48,11 +47,13 @@ func init() {
 
 	BindMaxNum = viper.GetInt("bindmax")
 	notice = viper.GetString("notice")
+	admin = GetAdmin()
 
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		BindMaxNum = viper.GetInt("bindmax")
 		notice = viper.GetString("notice")
+		admin = GetAdmin()
 	})
 
 	UserStatus = make(map[int64]int)
@@ -176,4 +177,13 @@ func bOnText(m *tb.Message) {
 			UserStatus[m.Chat.ID] = USNone
 		}
 	}
+}
+func bTask(m *tb.Message) {
+	for _, a := range admin {
+		if a == m.Chat.ID {
+			SignTask()
+			return
+		}
+	}
+
 }
