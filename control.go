@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"strconv"
@@ -81,39 +82,53 @@ func MSAppIsExist(tgId int64, clientId string) bool {
 	}
 	return false
 }
-func bTask(m *tb.Message) {
-	SignTask()
-}
 
 //SignTask
 func SignTask() {
 	var SignOk map[int64]int
+	var SignErr []string
+	var num, signOk int
 	SignOk = make(map[int64]int)
 	fmt.Println("----Task Begin----")
 	fmt.Println("Time:" + time.Now().Format("2006-01-02 15:04:05"))
 	data := QueryDataAll(db)
+	num = len(data)
 	fmt.Println("Start Sign")
 	for _, u := range data {
+		e := ""
+		pre := "您的账户:" + u.alias + "\n在任务执行时出现了错误!\n错误:"
 		access := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
+		chat, _ := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
 		if access == "" {
-			fmt.Println(u.msId + " Sign ERROR:AccessTokenGet")
+			e = "Sign ERROR:GetAccessToken"
+			fmt.Println(u.msId + e)
+			bot.Send(chat, pre+e)
+			SignErr = append(SignErr, u.msId)
 			continue
 		}
 		if !OutLookGetMails(access) {
+			e = "Sign ERROR:ReadMails"
 			fmt.Println(u.msId + " Sign ERROR:ReadMails")
+			bot.Send(chat, pre+e)
+			SignErr = append(SignErr, u.msId)
 			continue
 		}
 		u.uptime = time.Now().Unix()
 		if ok, err := UpdateData(db, u); !ok {
+			e = "Update Data ERROR:"
 			fmt.Printf("%s Update Data ERROR: %s\n", u.msId, err)
+			bot.Send(chat, pre+e)
+			SignErr = append(SignErr, u.msId)
 			continue
 		}
 		fmt.Println(u.msId + " Sign OK!")
 		SignOk[u.tgId]++
+		signOk++
 	}
 	fmt.Println("Sign End,Start Send")
 	var isSend map[int64]bool
 	isSend = make(map[int64]bool)
+	//用户任务反馈
 	for _, u := range data {
 		if !isSend[u.tgId] {
 			chat, err := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
@@ -121,9 +136,28 @@ func SignTask() {
 				fmt.Println("Send Result ERROR")
 				continue
 			}
-			bot.Send(chat, "任务反馈\n时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)))
+			bot.Send(chat, "任务反馈\n时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)))
 			isSend[u.tgId] = true
 		}
 	}
+	//管理员任务反馈
+	var ErrUser string
+	for _, eu := range SignErr {
+		ErrUser = ErrUser + eu + "\n"
+	}
+	for _, a := range admin {
+		chat, _ := bot.ChatByID(strconv.FormatInt(a, 10))
+		bot.Send(chat, "任务反馈(管理员)\n完成时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(signOk)+"/"+strconv.Itoa(num)+"\n错误账户msid:\n"+ErrUser)
+	}
 	fmt.Println("----Task End----")
+}
+func GetAdmin() []int64 {
+	var result []int64
+	admins := strings.Split(viper.GetString("admin"), ",")
+	for _, v := range admins {
+		id, _ := strconv.ParseInt(v, 10, 64)
+		result = append(result, id)
+	}
+	fmt.Println(result)
+	return result
 }
