@@ -2,10 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/spf13/viper"
-	"strings"
 )
 
 type MSData struct {
@@ -17,28 +14,6 @@ type MSData struct {
 	clientId     string
 	clientSecret string
 	other        string
-}
-
-func init() {
-	var err error
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
-	err = viper.ReadInConfig()
-	CheckErr(err)
-	host := viper.GetString("mysql.host")
-	user := viper.GetString("mysql.user")
-	port := viper.GetString("mysql.port")
-	pwd := viper.GetString("mysql.password")
-	database := viper.GetString("mysql.database")
-	path := strings.Join([]string{user, ":", pwd, "@tcp(", host, ":", port, ")/", database, "?charset=utf8"}, "")
-	//fmt.Println(path)
-	db, err = sql.Open(dbDriverName, path)
-	if !CheckErr(err) {
-		fmt.Println("Connect MySQL ERROR:")
-		return
-	}
-	fmt.Println("Connect MySQL Success!")
-	CreateTB(db)
 }
 
 //update data by msId

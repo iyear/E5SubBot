@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -85,7 +84,7 @@ func bMyInlineBtn(c *tb.Callback) {
 	bot.Respond(c)
 }
 func bBind1(m *tb.Message) {
-	fmt.Println("ReApp: " + strconv.FormatInt(m.Chat.ID, 10))
+	logger.Println("ReApp: " + strconv.FormatInt(m.Chat.ID, 10))
 	bot.Send(m.Chat, "应用注册： [点击直达]("+MSGetReAppUrl()+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复client_id+空格+client_secret", &tb.ReplyMarkup{ForceReply: true})
 	if err == nil {
@@ -95,14 +94,14 @@ func bBind1(m *tb.Message) {
 
 }
 func bBind2(m *tb.Message) {
-	fmt.Println("Auth: " + strconv.FormatInt(m.Chat.ID, 10))
+	logger.Println("Auth: " + strconv.FormatInt(m.Chat.ID, 10))
 	tmp := strings.Split(m.Text, " ")
 	if len(tmp) != 2 {
-		fmt.Printf("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
+		logger.Printf("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
 		bot.Send(m.Chat, "错误的格式")
 		return
 	}
-	fmt.Println("client_id: " + tmp[0] + " client_secret: " + tmp[1])
+	logger.Println("client_id: " + tmp[0] + " client_secret: " + tmp[1])
 	cid := tmp[0]
 	cse := tmp[1]
 	bot.Send(m.Chat, "授权账户： [点击直达]("+MSGetAuthUrl(cid)+")", tb.ModeMarkdown)
@@ -131,11 +130,11 @@ func bUnBindInlineBtn(c *tb.Callback) {
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
 	if ok, _ := DelData(db, u.msId); !ok {
-		fmt.Println(u.msId + " UnBind ERROR")
+		logger.Println(u.msId + " UnBind ERROR")
 		bot.Send(c.Message.Chat, "解绑失败!")
 		return
 	}
-	fmt.Println(u.msId + " UnBind Success")
+	logger.Println(u.msId + " UnBind Success")
 	bot.Send(c.Message.Chat, "解绑成功!")
 	bot.Respond(c)
 }

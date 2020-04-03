@@ -20,15 +20,15 @@ func CheckErr(err error) bool {
 	}
 	return true
 }
-func FileExist(Path string) bool {
-	if _, err := os.Stat(Path); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		} else {
-			CheckErr(err)
-		}
+func PathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
 	}
-	return true
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }
 func GetBetweenStr(str, start, end string) string {
 	n := strings.Index(str, start)

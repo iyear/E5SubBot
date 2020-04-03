@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
@@ -39,11 +38,17 @@ func MSFirGetToken(code, cid, cse string) (access string, refresh string) {
 	r.Form.Add("redirect_uri", redirectUri)
 	body := strings.NewReader(r.Form.Encode())
 	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
+	if err != nil {
+		logger.Println(err)
+	}
 	resp, err := client.Do(req)
+	if err != nil {
+		logger.Println(err)
+	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Fatal error ")
+		logger.Println(err)
 	}
 	if gjson.Get(string(content), "token_type").String() == "Bearer" {
 		return gjson.Get(string(content), "access_token").String(), gjson.Get(string(content), "refresh_token").String()
@@ -67,11 +72,17 @@ func MSGetToken(refreshtoken, cid, cse string) (access string) {
 	body := strings.NewReader(r.Form.Encode())
 	//fmt.Println(body)
 	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
+	if err != nil {
+		logger.Println(err)
+	}
 	resp, err := client.Do(req)
+	if err != nil {
+		logger.Println(err)
+	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Fatal error ")
+		logger.Println(err)
 	}
 	//fmt.Println(string(content))
 	//fmt.Println(gjson.Get(string(content), "access_token").String())
@@ -88,7 +99,7 @@ func MSGetUserInfo(accesstoken string) (json string) {
 	client := http.Client{}
 	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me", nil)
 	if err != nil {
-		fmt.Println("MSGetUserInfo ERROR ")
+		logger.Println(err)
 		return ""
 	}
 	req.Header.Set("Authorization", accesstoken)
@@ -106,7 +117,7 @@ func OutLookGetMails(accesstoken string) bool {
 	client := http.Client{}
 	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me/messages", nil)
 	if err != nil {
-		fmt.Println("MSGetMils ERROR ")
+		logger.Println(err)
 		return false
 	}
 	req.Header.Set("Authorization", accesstoken)

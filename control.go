@@ -5,6 +5,9 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	tb "gopkg.in/tucnak/telebot.v2"
+	"io"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -14,19 +17,19 @@ var SignOk map[int64]int
 
 //If Successfully return "",else return error information
 func BindUser(m *tb.Message, cid, cse string) string {
-	fmt.Printf("%d Begin Bind\n", m.Chat.ID)
+	logger.Printf("%d Begin Bind\n", m.Chat.ID)
 	tmp := strings.Split(m.Text, " ")
 	if len(tmp) != 2 {
-		fmt.Printf("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
+		logger.Printf("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
 		return "授权格式错误"
 	}
-	fmt.Println("alias: " + tmp[1])
+	logger.Println("alias: " + tmp[1])
 	alias := tmp[1]
 	code := GetURLValue(tmp[0], "code")
 	//fmt.Println(code)
 	access, refresh := MSFirGetToken(code, cid, cse)
 	if refresh == "" {
-		fmt.Printf("%d Bind error:GetRefreshToken\n", m.Chat.ID)
+		logger.Printf("%d Bind error:GetRefreshToken\n", m.Chat.ID)
 		return "获取RefreshToken失败"
 	}
 
@@ -35,7 +38,7 @@ func BindUser(m *tb.Message, cid, cse string) string {
 	info := MSGetUserInfo(access)
 	//fmt.Printf("TGID:%d Refresh Token: %s\n", m.Chat.ID, refresh)
 	if info == "" {
-		fmt.Printf("%d Bind error:Getinfo\n", m.Chat.ID)
+		logger.Printf("%d Bind error:Getinfo\n", m.Chat.ID)
 		return "获取用户信息错误"
 	}
 
@@ -45,23 +48,23 @@ func BindUser(m *tb.Message, cid, cse string) string {
 	//TG的Data传递最高64bytes,一些msid超过了报错BUTTON_DATA_INVALID (0)，采取md5
 	u.msId = Get16MD5Encode(gjson.Get(info, "id").String())
 	u.uptime = time.Now().Unix()
-	fmt.Println(u.uptime)
+	logger.Println(u.uptime)
 	u.alias = alias
 	u.clientId = cid
 	u.clientSecret = cse
 	u.other = ""
 	//MS User Is Exist
 	if MSAppIsExist(u.tgId, u.clientId) {
-		fmt.Printf("%d Bind error:MSUserHasExisted\n", m.Chat.ID)
+		logger.Printf("%d Bind error:MSUserHasExisted\n", m.Chat.ID)
 		return "该应用已经绑定过了，无需重复绑定"
 	}
 	//MS information has gotten
 	bot.Send(m.Chat, "MS_ID(MD5)： "+u.msId+"\nuserPrincipalName： "+gjson.Get(info, "userPrincipalName").String()+"\ndisplayName： "+gjson.Get(info, "displayName").String()+"\n")
 	if ok, err := AddData(db, u); !ok {
-		fmt.Printf("%d Bind error: %s\n", m.Chat.ID, err)
+		logger.Printf("%d Bind error: %s\n", m.Chat.ID, err)
 		return "数据库写入错误"
 	}
-	fmt.Printf("%d Bind Successfully!\n", m.Chat.ID)
+	logger.Printf("%d Bind Successfully!\n", m.Chat.ID)
 	return ""
 }
 
@@ -109,14 +112,14 @@ func SignTask() {
 		se := u.msId + " ( @" + chat.Username + " )"
 		if access == "" {
 			e = "Sign ERROR:GetAccessToken"
-			fmt.Println(u.msId + e)
+			logger.Println(u.msId + e)
 			bot.Send(chat, pre+e, tmpBtn)
 			SignErr = append(SignErr, se)
 			continue
 		}
 		if !OutLookGetMails(access) {
 			e = "Sign ERROR:ReadMails"
-			fmt.Println(u.msId + " Sign ERROR:ReadMails")
+			logger.Println(u.msId + " Sign ERROR:ReadMails")
 			bot.Send(chat, pre+e, tmpBtn)
 			SignErr = append(SignErr, se)
 			continue
@@ -124,7 +127,7 @@ func SignTask() {
 		u.uptime = time.Now().Unix()
 		if ok, err := UpdateData(db, u); !ok {
 			e = "Update Data ERROR:"
-			fmt.Printf("%s Update Data ERROR: %s\n", u.msId, err)
+			logger.Printf("%s Update Data ERROR: %s\n", u.msId, err)
 			bot.Send(chat, pre+e, tmpBtn)
 			SignErr = append(SignErr, se)
 			continue
@@ -141,11 +144,14 @@ func SignTask() {
 		if !isSend[u.tgId] {
 			chat, err := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
 			if err != nil {
-				fmt.Println("Send Result ERROR")
+				logger.Println("Send Result ERROR", err)
 				continue
 			}
 			//静默发送，过多消息很烦
-			bot.Send(chat, "任务反馈\n时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)), &tb.SendOptions{DisableNotification: true})
+			_, err = bot.Send(chat, "任务反馈\n时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)), &tb.SendOptions{DisableNotification: true})
+			if err != nil {
+				logger.Println(err)
+			}
 			isSend[u.tgId] = true
 		}
 	}
@@ -168,4 +174,20 @@ func GetAdmin() []int64 {
 		result = append(result, id)
 	}
 	return result
+}
+func InitLogger() {
+	if !PathExists("./log/") {
+		os.Mkdir("./log/", 0773)
+	}
+
+	path := "./log/" + time.Now().Format("2006-01-02") + ".log"
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0773)
+	if err != nil {
+		logger.Println(err)
+	}
+	writers := []io.Writer{
+		f,
+		os.Stdout}
+	faoWriter := io.MultiWriter(writers...)
+	logger = log.New(faoWriter, "【E5Sub】", log.Ldate|log.Ltime|log.Lshortfile)
 }
