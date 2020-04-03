@@ -96,29 +96,37 @@ func SignTask() {
 	fmt.Println("Start Sign")
 	for _, u := range data {
 		e := ""
-		pre := "您的账户:" + u.alias + "\n在任务执行时出现了错误!\n错误:"
+		pre := "您的账户: " + u.alias + "\n在任务执行时出现了错误!\n错误:"
 		access := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
 		chat, _ := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
+		//生成解绑按钮
+		var inlineKeys [][]tb.InlineButton
+		UnBindBtn := tb.InlineButton{Unique: "un" + u.msId, Text: "点击解绑该账户", Data: u.msId}
+		bot.Handle(&UnBindBtn, bUnBindInlineBtn)
+		inlineKeys = append(inlineKeys, []tb.InlineButton{UnBindBtn})
+		tmpBtn := &tb.ReplyMarkup{InlineKeyboard: inlineKeys}
+
+		se := u.msId + " ( @" + chat.Username + " )"
 		if access == "" {
 			e = "Sign ERROR:GetAccessToken"
 			fmt.Println(u.msId + e)
-			bot.Send(chat, pre+e)
-			SignErr = append(SignErr, u.msId)
+			bot.Send(chat, pre+e, tmpBtn)
+			SignErr = append(SignErr, se)
 			continue
 		}
 		if !OutLookGetMails(access) {
 			e = "Sign ERROR:ReadMails"
 			fmt.Println(u.msId + " Sign ERROR:ReadMails")
-			bot.Send(chat, pre+e)
-			SignErr = append(SignErr, u.msId)
+			bot.Send(chat, pre+e, tmpBtn)
+			SignErr = append(SignErr, se)
 			continue
 		}
 		u.uptime = time.Now().Unix()
 		if ok, err := UpdateData(db, u); !ok {
 			e = "Update Data ERROR:"
 			fmt.Printf("%s Update Data ERROR: %s\n", u.msId, err)
-			bot.Send(chat, pre+e)
-			SignErr = append(SignErr, u.msId)
+			bot.Send(chat, pre+e, tmpBtn)
+			SignErr = append(SignErr, se)
 			continue
 		}
 		fmt.Println(u.msId + " Sign OK!")
@@ -136,7 +144,8 @@ func SignTask() {
 				fmt.Println("Send Result ERROR")
 				continue
 			}
-			bot.Send(chat, "任务反馈\n时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)))
+			//静默发送，过多消息很烦
+			bot.Send(chat, "任务反馈\n时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)), &tb.SendOptions{DisableNotification: true})
 			isSend[u.tgId] = true
 		}
 	}
@@ -158,6 +167,5 @@ func GetAdmin() []int64 {
 		id, _ := strconv.ParseInt(v, 10, 64)
 		result = append(result, id)
 	}
-	fmt.Println(result)
 	return result
 }
