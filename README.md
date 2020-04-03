@@ -1,23 +1,29 @@
 # E5SubBot
 
-![](https://img.shields.io/badge/language-go-blue.svg)
+![](https://img.shields.io/github/go-mod/go-version/iyear/E5SubBot)
 ![](https://img.shields.io/badge/license-GPL-lightgrey.svg)
+![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=green)
 
 A Simple Telebot for E5 Renewal
 
 Golang + MySQL
 
-DEMO: https://t.me/E5Sub_bot
+DEMO: https://t.me/E5Sub_bot(长期运行，所有新功能会在DEMO测试)
 
 [交流群组telegram](https://t.me/e5subbot)
 
-
+## 预览
+- [绑定过程](https://raw.githubusercontent.com/iyear/E5SubBot/master/pics/bind.JPG)
+- [查看"我的"](https://raw.githubusercontent.com/iyear/E5SubBot/master/pics/my.JPG)
+- [任务反馈](https://raw.githubusercontent.com/iyear/E5SubBot/master/pics/task.JPG)
 
 ## 特性
 
-- 自动续订E5订阅(每三小时调用一次)
+- 自动续订E5订阅(可自定义的调用频率)
 - 可管理的简易账户系统
+- 完善的任务执行反馈
 - 极为方便的授权方式
+
 
 ## 原理
 
@@ -69,13 +75,18 @@ go build main.go
 配置模板
 
 ```yaml
-#bindmax,notice可热更新，直接更新config.yml保存即可
+#bindmax,notice,admin可热更新，直接更新config.yml保存即可
 #更换为自己的BotToken
 bot_token: xxxxx
 #不需要socks5代理删去即可
 socks5: 127.0.0.1:1080
 #公告，合并至/help
 notice: "第一行\n第二行"
+#管理员tgid，前往https://t.me/userinfobot获取，用,隔开
+#管理员权限: 手动调用任务，获得任务总反馈
+admin: 66666,77777,88888
+#API调用频率，使用cron表达式
+cron: "1 */3 * * *"
 #最大可绑定数
 bindmax: 3
 #mysql配置，请提前创建数据库
@@ -88,8 +99,10 @@ mysql:
 ```
 
 ## 注意事项
+> 更新时间与北京时间不符
 
-待填写
+更改服务器时区为Asia/Shanghai，然后使用/task手动执行一次任务
+
 
 ## License
 
