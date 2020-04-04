@@ -59,6 +59,7 @@ func init() {
 	UserCid = make(map[int64]string)
 	UserCSecret = make(map[int64]string)
 }
+
 func bStart(m *tb.Message) {
 	bot.Send(m.Sender, bStartContent)
 	bHelp(m)
