@@ -8,7 +8,7 @@ A Simple Telebot for E5 Renewal
 
 Golang + MySQL
 
-DEMO: https://t.me/E5Sub_bot(长期运行，所有新功能会在DEMO测试)
+DEMO: https://t.me/E5Sub_bot (长期运行，所有新功能会在DEMO测试)
 
 [交流群组telegram](https://t.me/e5subbot)
 
