@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/goreleaser/goreleaser v0.129.0 // indirect
 	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/spf13/viper v1.6.2

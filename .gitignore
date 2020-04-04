@@ -17,6 +17,7 @@ config.yml
 
 #Database
 *.db
-
+#Goreleaser
+/dist
 #Logs
 /log
