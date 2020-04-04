@@ -50,14 +50,14 @@ Bot创建教程:[Google](https://www.google.com/search?q=telegram+Bot%E5%88%9B%E
 
 在[Releases](https://github.com/iyear/E5SubBot/releases)页面下载对应系统的二进制文件，上传至服务器
 
-Windows: 在cmd中启动e5sub.exe
+Windows: 在cmd中启动 `E5SubBot.exe`
 
 Linux: 
 
 ```bash
 screen -S e5sub
-chmod 773 e5sub
-./e5sub
+chmod 773 E5SubBot
+./E5SubBot
 (Ctrl A+D)
 ```
 #### 编译
