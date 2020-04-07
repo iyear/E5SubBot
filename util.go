@@ -103,7 +103,7 @@ func GetRecentLogs(path string, n int) []string {
 	//fmt.Println(nt)
 	for i := 1; i <= nt; {
 		if PathExists(path + data.Format("2006-01-02") + ".log") {
-			paths = append(paths, path+data.Format("2006-01-02")+".log")
+			paths = append(paths, data.Format("2006-01-02")+".log")
 			i++
 		}
 		data = data.Add(d)
