@@ -1,15 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	tb "gopkg.in/tucnak/telebot.v2"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 )
 
 const (
+	bLogBasePath  string = "./log/"
 	bStartContent string = "欢迎使用E5SubBot!"
 	bHelpContent  string = `
 	命令：
@@ -18,6 +21,7 @@ const (
 	/unbind 解绑账户
 	/help 帮助
 	/task 手动执行一次任务(管理员)
+	/log 获取log文件(管理员)
 	源码及使用方法：https://github.com/iyear/E5SubBot
 `
 )
@@ -64,6 +68,7 @@ func bStart(m *tb.Message) {
 	bot.Send(m.Sender, bStartContent)
 	bHelp(m)
 }
+
 func bMy(m *tb.Message) {
 	data := QueryDataByTG(db, m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
@@ -82,6 +87,43 @@ func bMyInlineBtn(c *tb.Callback) {
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
 	bot.Send(c.Message.Chat, "信息\n别名："+u.alias+"\nMS_ID(MD5): "+u.msId+"\nclient_id: "+u.clientId+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05"))
+	bot.Respond(c)
+}
+
+func bLog(m *tb.Message) {
+	flag := 0
+	for _, a := range admin {
+		if a == m.Chat.ID {
+			flag = 1
+		}
+	}
+	if flag == 0 {
+		bot.Send(m.Chat, "您没有权限执行此操作~")
+		return
+	}
+	logs := GetRecentLogs(bLogBasePath, 5)
+	var inlineKeys [][]tb.InlineButton
+	for _, log := range logs {
+		inlineBtn := tb.InlineButton{
+			Unique: "log" + strings.Replace(strings.TrimSuffix(filepath.Base(log), ".log"), "-", "", -1),
+			Text:   filepath.Base(log),
+			Data:   filepath.Base(log),
+		}
+		bot.Handle(&inlineBtn, bLogsInlineBtn)
+		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
+	}
+	_, err := bot.Send(m.Chat, "选择一个日志", &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
+	fmt.Println(err)
+}
+func bLogsInlineBtn(c *tb.Callback) {
+	//fmt.Println(c.Data)
+	//logger.Println(bLogBasePath + c.Data + ".log")
+	logfile := &tb.Document{File: tb.FromDisk(bLogBasePath + c.Data), FileName: c.Data, MIME: "text/plain"}
+	_, err := bot.Send(c.Message.Chat, logfile)
+	if err != nil {
+		logger.Println(err)
+		return
+	}
 	bot.Respond(c)
 }
 func bBind1(m *tb.Message) {
@@ -113,6 +155,7 @@ func bBind2(m *tb.Message) {
 		UserCSecret[m.Chat.ID] = cse
 	}
 }
+
 func bUnBind(m *tb.Message) {
 	data := QueryDataByTG(db, m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
@@ -139,6 +182,7 @@ func bUnBindInlineBtn(c *tb.Callback) {
 	bot.Send(c.Message.Chat, "解绑成功!")
 	bot.Respond(c)
 }
+
 func bHelp(m *tb.Message) {
 	bot.Send(m.Sender, bHelpContent+"\n"+notice, &tb.SendOptions{DisableWebPagePreview: false})
 }
@@ -146,7 +190,7 @@ func bOnText(m *tb.Message) {
 	switch UserStatus[m.Chat.ID] {
 	case USNone:
 		{
-			bot.Send(m.Chat, "发送/bind开始绑定嗷")
+			bot.Send(m.Chat, "发送/help获取帮助嗷")
 			return
 		}
 	case USBind1:
@@ -185,5 +229,5 @@ func bTask(m *tb.Message) {
 			return
 		}
 	}
-
+	bot.Send(m.Chat, "您没有权限执行此操作~")
 }

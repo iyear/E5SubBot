@@ -46,13 +46,16 @@ func BotStart() {
 }
 func MakeHandle() {
 	logger.Println("Make Handle……")
+	//所有用户
 	bot.Handle("/start", bStart)
 	bot.Handle("/my", bMy)
-	bot.Handle("/task", bTask)
 	bot.Handle("/bind", bBind1)
 	bot.Handle("/unbind", bUnBind)
 	bot.Handle("/help", bHelp)
 	bot.Handle(tb.OnText, bOnText)
+	//管理员
+	bot.Handle("/task", bTask)
+	bot.Handle("/log", bLog)
 }
 func TaskLaunch() {
 	task := cron.New()
