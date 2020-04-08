@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
@@ -26,7 +27,7 @@ func MSGetReAppUrl() string {
 }
 
 //return access_token and refresh_token
-func MSFirGetToken(code, cid, cse string) (access string, refresh string) {
+func MSFirGetToken(code, cid, cse string) (access string, refresh string, Error error) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
@@ -40,26 +41,27 @@ func MSFirGetToken(code, cid, cse string) (access string, refresh string) {
 	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
 	if err != nil {
 		logger.Println(err)
+		return "", "", err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Println(err)
+		return "", "", err
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logger.Println(err)
+		return "", "", err
 	}
 	if gjson.Get(string(content), "token_type").String() == "Bearer" {
-		return gjson.Get(string(content), "access_token").String(), gjson.Get(string(content), "refresh_token").String()
-	} else {
-		return "", ""
+		return gjson.Get(string(content), "access_token").String(), gjson.Get(string(content), "refresh_token").String(), nil
 	}
-	return "", ""
+	return "", "", errors.New(string(content))
 }
 
 //return access_token
-func MSGetToken(refreshtoken, cid, cse string) (access string) {
+func MSGetToken(refreshtoken, cid, cse string) (access string, Error error) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
@@ -74,60 +76,77 @@ func MSGetToken(refreshtoken, cid, cse string) (access string) {
 	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
 	if err != nil {
 		logger.Println(err)
+		return "", err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Println(err)
+		return "", err
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logger.Println(err)
+		return "", err
 	}
 	//fmt.Println(string(content))
 	//fmt.Println(gjson.Get(string(content), "access_token").String())
 	if gjson.Get(string(content), "token_type").String() == "Bearer" {
-		return gjson.Get(string(content), "access_token").String()
-	} else {
-		return ""
+		return gjson.Get(string(content), "access_token").String(), nil
 	}
-	return ""
+	return "", errors.New(string(content))
 }
 
 //Get User's Information
-func MSGetUserInfo(accesstoken string) (json string) {
+func MSGetUserInfo(accesstoken string) (json string, Error error) {
 	client := http.Client{}
 	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me", nil)
 	if err != nil {
 		logger.Println(err)
-		return ""
+		return "", err
 	}
 	req.Header.Set("Authorization", accesstoken)
-	resp, _ := client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Println(err)
+		return "", err
+	}
 	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logger.Println(err)
+		return "", err
+	}
 	if gjson.Get(string(content), "id").String() != "" {
 		//fmt.Println("UserName: " + gjson.Get(string(content), "displayName").String())
-		return string(content)
+		return string(content), nil
 	}
-	return ""
+	return "", errors.New(string(content))
 }
 
-func OutLookGetMails(accesstoken string) bool {
+func OutLookGetMails(accesstoken string) (bool, error) {
 	client := http.Client{}
 	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me/messages", nil)
 	if err != nil {
 		logger.Println(err)
-		return false
+		return false, err
 	}
 	req.Header.Set("Authorization", accesstoken)
-	resp, _ := client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Println(err)
+		return false, err
+	}
 	defer resp.Body.Close()
-	content, _ := ioutil.ReadAll(resp.Body)
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logger.Println(err)
+		return false, err
+	}
 	//fmt.Println(string(content))
 	//这里的.需要转义，否则会按路径的方式解析
 	if gjson.Get(string(content), "@odata\\.context").String() != "" {
-		return true
+		return true, nil
 	}
-	return false
+	return false, errors.New(string(content))
 }
