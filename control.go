@@ -112,13 +112,13 @@ func SignTask() {
 		se := u.msId + " ( @" + chat.Username + " )"
 		if err != nil {
 			logger.Println(u.msId+" ", err)
-			bot.Send(chat, pre+err.Error(), tmpBtn)
+			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
 			SignErr = append(SignErr, se)
 			continue
 		}
 		if ok, err := OutLookGetMails(access); !ok {
 			logger.Println(u.msId+" ", err)
-			bot.Send(chat, pre+err.Error(), tmpBtn)
+			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
 			SignErr = append(SignErr, se)
 			continue
 		}
