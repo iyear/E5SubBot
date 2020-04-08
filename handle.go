@@ -21,7 +21,7 @@ const (
 	/unbind 解绑账户
 	/help 帮助
 	/task 手动执行一次任务(管理员)
-	/log 获取log文件(管理员)
+	/log 获取最近日志文件(管理员)
 	源码及使用方法：https://github.com/iyear/E5SubBot
 `
 )
@@ -86,7 +86,7 @@ func bMy(m *tb.Message) {
 func bMyInlineBtn(c *tb.Callback) {
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
-	bot.Send(c.Message.Chat, "信息\n别名："+u.alias+"\nMS_ID(MD5): "+u.msId+"\nclient_id: "+u.clientId+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05"))
+	bot.Send(c.Message.Chat, "信息\n别名："+u.alias+"\nMS_ID(MD5): "+u.msId+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05")+"\n\nrefresh_token: "+u.refreshToken)
 	bot.Respond(c)
 }
 
