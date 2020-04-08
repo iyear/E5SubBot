@@ -10,7 +10,8 @@ FROM alpine:latest
 
 ENV TIME_ZONE=Asia/Shanghai
 
-RUN ln -snf /usr/share/zoneinfo/$TIME_ZONE /etc/localtime && echo $TIME_ZONE > /etc/timezone
+RUN apk update && apk add tzdata \
+    && ln -snf /usr/share/zoneinfo/$TIME_ZONE /etc/localtime && echo $TIME_ZONE > /etc/timezone
 
 WORKDIR /root
 
