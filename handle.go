@@ -212,11 +212,11 @@ func bOnText(m *tb.Message) {
 				return
 			}
 			bot.Send(m.Chat, "正在绑定中……")
-			info := BindUser(m, UserCid[m.Chat.ID], UserCSecret[m.Chat.ID])
-			if info == "" {
-				bot.Send(m.Chat, "绑定成功!")
+			err := BindUser(m, UserCid[m.Chat.ID], UserCSecret[m.Chat.ID])
+			if err != nil {
+				bot.Send(m.Chat, err.Error())
 			} else {
-				bot.Send(m.Chat, info)
+				bot.Send(m.Chat, "绑定成功!")
 			}
 			UserStatus[m.Chat.ID] = USNone
 		}

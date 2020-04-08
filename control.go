@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
@@ -16,30 +17,30 @@ import (
 var SignOk map[int64]int
 
 //If Successfully return "",else return error information
-func BindUser(m *tb.Message, cid, cse string) string {
+func BindUser(m *tb.Message, cid, cse string) error {
 	logger.Printf("%d Begin Bind\n", m.Chat.ID)
 	tmp := strings.Split(m.Text, " ")
 	if len(tmp) != 2 {
 		logger.Printf("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
-		return "授权格式错误"
+		return errors.New("绑定格式错误")
 	}
 	logger.Println("alias: " + tmp[1])
 	alias := tmp[1]
 	code := GetURLValue(tmp[0], "code")
 	//fmt.Println(code)
-	access, refresh := MSFirGetToken(code, cid, cse)
-	if refresh == "" {
-		logger.Printf("%d Bind error:GetRefreshToken\n", m.Chat.ID)
-		return "获取RefreshToken失败"
+	access, refresh, err := MSFirGetToken(code, cid, cse)
+	if err != nil {
+		logger.Printf("%d Bind error:GetRefreshToken %s \n", m.Chat.ID, err.Error())
+		return err
 	}
 
 	//token has gotten
 	bot.Send(m.Chat, "Token获取成功!")
-	info := MSGetUserInfo(access)
+	info, err := MSGetUserInfo(access)
 	//fmt.Printf("TGID:%d Refresh Token: %s\n", m.Chat.ID, refresh)
-	if info == "" {
-		logger.Printf("%d Bind error:Getinfo\n", m.Chat.ID)
-		return "获取用户信息错误"
+	if err != nil {
+		logger.Printf("%d Bind error:Getinfo %s \n", m.Chat.ID, err.Error())
+		return err
 	}
 
 	var u MSData
@@ -56,16 +57,16 @@ func BindUser(m *tb.Message, cid, cse string) string {
 	//MS User Is Exist
 	if MSAppIsExist(u.tgId, u.clientId) {
 		logger.Printf("%d Bind error:MSUserHasExisted\n", m.Chat.ID)
-		return "该应用已经绑定过了，无需重复绑定"
+		return errors.New("该应用已经绑定过了，无需重复绑定")
 	}
 	//MS information has gotten
 	bot.Send(m.Chat, "MS_ID(MD5)： "+u.msId+"\nuserPrincipalName： "+gjson.Get(info, "userPrincipalName").String()+"\ndisplayName： "+gjson.Get(info, "displayName").String()+"\n")
 	if ok, err := AddData(db, u); !ok {
 		logger.Printf("%d Bind error: %s\n", m.Chat.ID, err)
-		return "数据库写入错误"
+		return err
 	}
 	logger.Printf("%d Bind Successfully!\n", m.Chat.ID)
-	return ""
+	return nil
 }
 
 //get bind num
@@ -98,9 +99,8 @@ func SignTask() {
 	num = len(data)
 	fmt.Println("Start Sign")
 	for _, u := range data {
-		e := ""
 		pre := "您的账户: " + u.alias + "\n在任务执行时出现了错误!\n错误:"
-		access := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
+		access, err := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
 		chat, _ := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
 		//生成解绑按钮
 		var inlineKeys [][]tb.InlineButton
@@ -110,25 +110,22 @@ func SignTask() {
 		tmpBtn := &tb.ReplyMarkup{InlineKeyboard: inlineKeys}
 
 		se := u.msId + " ( @" + chat.Username + " )"
-		if access == "" {
-			e = "Sign ERROR:GetAccessToken"
-			logger.Println(u.msId + e)
-			bot.Send(chat, pre+e, tmpBtn)
+		if err != nil {
+			logger.Println(u.msId+" ", err)
+			bot.Send(chat, pre+err.Error(), tmpBtn)
 			SignErr = append(SignErr, se)
 			continue
 		}
-		if !OutLookGetMails(access) {
-			e = "Sign ERROR:ReadMails"
-			logger.Println(u.msId + " Sign ERROR:ReadMails")
-			bot.Send(chat, pre+e, tmpBtn)
+		if ok, err := OutLookGetMails(access); !ok {
+			logger.Println(u.msId+" ", err)
+			bot.Send(chat, pre+err.Error(), tmpBtn)
 			SignErr = append(SignErr, se)
 			continue
 		}
 		u.uptime = time.Now().Unix()
 		if ok, err := UpdateData(db, u); !ok {
-			e = "Update Data ERROR:"
-			logger.Printf("%s Update Data ERROR: %s\n", u.msId, err)
-			bot.Send(chat, pre+e, tmpBtn)
+			logger.Println(u.msId+" ", err)
+			bot.Send(chat, pre+err.Error(), tmpBtn)
 			SignErr = append(SignErr, se)
 			continue
 		}
