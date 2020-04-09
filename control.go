@@ -89,9 +89,12 @@ func MSAppIsExist(tgId int64, clientId string) bool {
 
 //SignTask
 func SignTask() {
-	var SignOk map[int64]int
-	var SignErr []string
-	var num, signOk int
+	var (
+		SignOk      map[int64]int
+		SignErr     []string
+		UnbindUser  []string
+		num, signOk int
+	)
 	SignOk = make(map[int64]int)
 	fmt.Println("----Task Begin----")
 	fmt.Println("Time:" + time.Now().Format("2006-01-02 15:04:05"))
@@ -154,6 +157,7 @@ func SignTask() {
 			if ok, err := DelData(db, u.msId); !ok {
 				logger.Println(err)
 			} else {
+				UnbindUser = append(UnbindUser, u.msId+" ( @"+chat.Username+" )")
 				_, err = bot.Send(chat, "您的账户因达到错误上限而被自动解绑\n后会有期!\n\n别名: "+u.alias+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret)
 				if err != nil {
 					logger.Println(err)
@@ -171,13 +175,17 @@ func SignTask() {
 		}
 	}
 	//管理员任务反馈
-	var ErrUser string
+	var ErrUserStr string
+	var UnbindUserStr string
 	for _, eu := range SignErr {
-		ErrUser = ErrUser + eu + "\n"
+		ErrUserStr = ErrUserStr + eu + "\n"
+	}
+	for _, ubu := range UnbindUser {
+		UnbindUserStr = UnbindUserStr + ubu + "\n"
 	}
 	for _, a := range admin {
 		chat, _ := bot.ChatByID(strconv.FormatInt(a, 10))
-		bot.Send(chat, "任务反馈(管理员)\n完成时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(signOk)+"/"+strconv.Itoa(num)+"\n错误账户msid:\n"+ErrUser)
+		bot.Send(chat, "任务反馈(管理员)\n完成时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(signOk)+"/"+strconv.Itoa(num)+"\n错误账户:\n"+ErrUserStr+"\n清退账户:\n"+UnbindUserStr)
 	}
 	fmt.Println("----Task End----")
 }
