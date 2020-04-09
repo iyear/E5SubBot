@@ -98,10 +98,12 @@ func SignTask() {
 	data := QueryDataAll(db)
 	num = len(data)
 	fmt.Println("Start Sign")
+	//签到任务
 	for _, u := range data {
 		pre := "您的账户: " + u.alias + "\n在任务执行时出现了错误!\n错误:"
 		access, err := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
 		chat, _ := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
+
 		//生成解绑按钮
 		var inlineKeys [][]tb.InlineButton
 		UnBindBtn := tb.InlineButton{Unique: "un" + u.msId, Text: "点击解绑该账户", Data: u.msId}
@@ -114,11 +116,13 @@ func SignTask() {
 			logger.Println(u.msId+" ", err)
 			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
 			SignErr = append(SignErr, se)
+			ErrorTimes[u.msId]++
 			continue
 		}
 		if ok, err := OutLookGetMails(access); !ok {
 			logger.Println(u.msId+" ", err)
 			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
+			ErrorTimes[u.msId]++
 			SignErr = append(SignErr, se)
 			continue
 		}
@@ -127,6 +131,7 @@ func SignTask() {
 			logger.Println(u.msId+" ", err)
 			bot.Send(chat, pre+err.Error(), tmpBtn)
 			SignErr = append(SignErr, se)
+			ErrorTimes[u.msId]++
 			continue
 		}
 		fmt.Println(u.msId + " Sign OK!")
@@ -138,12 +143,25 @@ func SignTask() {
 	isSend = make(map[int64]bool)
 	//用户任务反馈
 	for _, u := range data {
-		if !isSend[u.tgId] {
-			chat, err := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
-			if err != nil {
-				logger.Println("Send Result ERROR", err)
-				continue
+		chat, err := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
+		if err != nil {
+			logger.Println("Send Result ERROR: ", err)
+			continue
+		}
+		//错误上限账户清退
+		if ErrorTimes[u.msId] == ErrMaxTimes {
+			logger.Println(u.msId + " Error Limit")
+			if ok, err := DelData(db, u.msId); !ok {
+				logger.Println(err)
+			} else {
+				_, err = bot.Send(chat, "您的账户因达到错误上限而被自动解绑\n后会有期!\n\n别名: "+u.alias+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret)
+				if err != nil {
+					logger.Println(err)
+				}
 			}
+
+		}
+		if !isSend[u.tgId] {
 			//静默发送，过多消息很烦
 			_, err = bot.Send(chat, "任务反馈\n时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)), &tb.SendOptions{DisableNotification: true})
 			if err != nil {

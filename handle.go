@@ -33,7 +33,9 @@ var (
 	UserStatus  map[int64]int
 	UserCid     map[int64]string
 	UserCSecret map[int64]string
+	ErrorTimes  map[string]int //错误次数
 	BindMaxNum  int
+	ErrMaxTimes int
 	notice      string
 	admin       []int64
 )
@@ -52,12 +54,14 @@ func init() {
 	CheckErr(err)
 
 	BindMaxNum = viper.GetInt("bindmax")
+	ErrMaxTimes = viper.GetInt("errlimit")
 	notice = viper.GetString("notice")
 	admin = GetAdmin()
 
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		BindMaxNum = viper.GetInt("bindmax")
+		ErrMaxTimes = viper.GetInt("errlimit")
 		notice = viper.GetString("notice")
 		admin = GetAdmin()
 	})
@@ -65,6 +69,7 @@ func init() {
 	UserStatus = make(map[int64]int)
 	UserCid = make(map[int64]string)
 	UserCSecret = make(map[int64]string)
+	ErrorTimes = make(map[string]int)
 }
 
 func bStart(m *tb.Message) {
