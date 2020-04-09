@@ -51,6 +51,7 @@ func MakeHandle() {
 	bot.Handle("/my", bMy)
 	bot.Handle("/bind", bBind1)
 	bot.Handle("/unbind", bUnBind)
+	bot.Handle("/export", bExport)
 	bot.Handle("/help", bHelp)
 	bot.Handle(tb.OnText, bOnText)
 	//管理员

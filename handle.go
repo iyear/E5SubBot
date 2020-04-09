@@ -1,10 +1,12 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	tb "gopkg.in/tucnak/telebot.v2"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -19,6 +21,7 @@ const (
 	/my 查看已绑定账户信息
 	/bind  绑定新账户
 	/unbind 解绑账户
+	/export 导出账户信息(json格式)
 	/help 帮助
 	/task 手动执行一次任务(管理员)
 	/log 获取最近日志文件(管理员)
@@ -113,7 +116,9 @@ func bLog(m *tb.Message) {
 		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
 	}
 	_, err := bot.Send(m.Chat, "选择一个日志", &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
-	fmt.Println(err)
+	if err != nil {
+		logger.Println(err)
+	}
 }
 func bLogsInlineBtn(c *tb.Callback) {
 	//fmt.Println(c.Data)
@@ -130,11 +135,12 @@ func bBind1(m *tb.Message) {
 	logger.Println("ReApp: " + strconv.FormatInt(m.Chat.ID, 10))
 	bot.Send(m.Chat, "应用注册： [点击直达]("+MSGetReAppUrl()+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复client_id+空格+client_secret", &tb.ReplyMarkup{ForceReply: true})
-	if err == nil {
-		UserStatus[m.Chat.ID] = USBind1
-		UserCid[m.Chat.ID] = m.Text
+	if err != nil {
+		logger.Println(err)
+		return
 	}
-
+	UserStatus[m.Chat.ID] = USBind1
+	UserCid[m.Chat.ID] = m.Text
 }
 func bBind2(m *tb.Message) {
 	logger.Println("Auth: " + strconv.FormatInt(m.Chat.ID, 10))
@@ -149,11 +155,13 @@ func bBind2(m *tb.Message) {
 	cse := tmp[1]
 	bot.Send(m.Chat, "授权账户： [点击直达]("+MSGetAuthUrl(cid)+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复http://localhost/…… + 空格 + 别名(用于管理)", &tb.ReplyMarkup{ForceReply: true})
-	if err == nil {
-		UserStatus[m.Chat.ID] = USBind2
-		UserCid[m.Chat.ID] = cid
-		UserCSecret[m.Chat.ID] = cse
+	if err != nil {
+		logger.Println(err)
+		return
 	}
+	UserStatus[m.Chat.ID] = USBind2
+	UserCid[m.Chat.ID] = cid
+	UserCSecret[m.Chat.ID] = cse
 }
 
 func bUnBind(m *tb.Message) {
@@ -182,7 +190,56 @@ func bUnBindInlineBtn(c *tb.Callback) {
 	bot.Send(c.Message.Chat, "解绑成功!")
 	bot.Respond(c)
 }
-
+func bExport(m *tb.Message) {
+	type MsMiniData struct {
+		Alias        string
+		ClientId     string
+		ClientSecret string
+		RefreshToken string
+		Other        string
+	}
+	var MsMini []MsMiniData
+	data := QueryDataByTG(db, m.Chat.ID)
+	if len(data) == 0 {
+		bot.Send(m.Chat, "你还没有绑定过账户嗷~")
+		return
+	}
+	for _, u := range data {
+		var ms MsMiniData
+		ms.RefreshToken = u.refreshToken
+		ms.Alias = u.alias
+		ms.ClientId = u.clientId
+		ms.ClientSecret = u.clientSecret
+		ms.Other = u.other
+		MsMini = append(MsMini, ms)
+	}
+	//MarshalIndent是为json+美化,/t表缩进
+	export, err := json.MarshalIndent(MsMini, "", "\t")
+	if err != nil {
+		logger.Println(err)
+		bot.Send(m.Chat, "获取JSON失败~\n"+err.Error())
+		return
+	}
+	//fmt.Println(string(export))
+	fileName := "./" + strconv.FormatInt(m.Chat.ID, 10) + "_export_tmp.json"
+	if err = ioutil.WriteFile(fileName, export, 0644); err != nil {
+		logger.Println(err)
+		bot.Send(m.Chat, "写入临时文件失败~\n"+err.Error())
+		return
+	}
+	exportFile := &tb.Document{File: tb.FromDisk(fileName), FileName: strconv.FormatInt(m.Chat.ID, 10) + ".json", MIME: "text/plain"}
+	_, err = bot.Send(m.Chat, exportFile)
+	if err != nil {
+		logger.Println(err)
+		return
+	}
+	//不遗留本地文件
+	if exportFile.InCloud() == true && os.Remove(fileName) == nil {
+		logger.Println(fileName + " Has Removed")
+	} else {
+		logger.Println(fileName + " Removed ERROR")
+	}
+}
 func bHelp(m *tb.Message) {
 	bot.Send(m.Sender, bHelpContent+"\n"+notice, &tb.SendOptions{DisableWebPagePreview: false})
 }
