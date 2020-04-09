@@ -21,7 +21,7 @@ const (
 	/my 查看已绑定账户信息
 	/bind  绑定新账户
 	/unbind 解绑账户
-	/export 导出账户信息(json格式)
+	/export 导出账户信息(JSON格式)
 	/help 帮助
 	/task 手动执行一次任务(管理员)
 	/log 获取最近日志文件(管理员)
@@ -73,6 +73,7 @@ func bStart(m *tb.Message) {
 }
 
 func bMy(m *tb.Message) {
+	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Manager Users")
 	data := QueryDataByTG(db, m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
@@ -87,51 +88,15 @@ func bMy(m *tb.Message) {
 	bot.Send(m.Chat, "选择一个账户查看具体信息\n\n绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
 }
 func bMyInlineBtn(c *tb.Callback) {
+	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Get User Info")
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
 	bot.Send(c.Message.Chat, "信息\n别名："+u.alias+"\nMS_ID(MD5): "+u.msId+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05")+"\n\nrefresh_token: "+u.refreshToken)
 	bot.Respond(c)
 }
 
-func bLog(m *tb.Message) {
-	flag := 0
-	for _, a := range admin {
-		if a == m.Chat.ID {
-			flag = 1
-		}
-	}
-	if flag == 0 {
-		bot.Send(m.Chat, "您没有权限执行此操作~")
-		return
-	}
-	logs := GetRecentLogs(bLogBasePath, 5)
-	var inlineKeys [][]tb.InlineButton
-	for _, log := range logs {
-		inlineBtn := tb.InlineButton{
-			Unique: "log" + strings.Replace(strings.TrimSuffix(filepath.Base(log), ".log"), "-", "", -1),
-			Text:   filepath.Base(log),
-			Data:   filepath.Base(log),
-		}
-		bot.Handle(&inlineBtn, bLogsInlineBtn)
-		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
-	}
-	_, err := bot.Send(m.Chat, "选择一个日志", &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
-	if err != nil {
-		logger.Println(err)
-	}
-}
-func bLogsInlineBtn(c *tb.Callback) {
-	//fmt.Println(c.Data)
-	//logger.Println(bLogBasePath + c.Data + ".log")
-	logfile := &tb.Document{File: tb.FromDisk(bLogBasePath + c.Data), FileName: c.Data, MIME: "text/plain"}
-	_, err := bot.Send(c.Message.Chat, logfile)
-	if err != nil {
-		logger.Println(err)
-		return
-	}
-	bot.Respond(c)
-}
 func bBind1(m *tb.Message) {
+	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Bind")
 	logger.Println("ReApp: " + strconv.FormatInt(m.Chat.ID, 10))
 	bot.Send(m.Chat, "应用注册： [点击直达]("+MSGetReAppUrl()+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复client_id+空格+client_secret", &tb.ReplyMarkup{ForceReply: true})
@@ -143,6 +108,7 @@ func bBind1(m *tb.Message) {
 	UserCid[m.Chat.ID] = m.Text
 }
 func bBind2(m *tb.Message) {
+	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Bind2")
 	logger.Println("Auth: " + strconv.FormatInt(m.Chat.ID, 10))
 	tmp := strings.Split(m.Text, " ")
 	if len(tmp) != 2 {
@@ -165,6 +131,7 @@ func bBind2(m *tb.Message) {
 }
 
 func bUnBind(m *tb.Message) {
+	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Unbind")
 	data := QueryDataByTG(db, m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
@@ -179,6 +146,7 @@ func bUnBind(m *tb.Message) {
 	bot.Send(m.Chat, "选择一个账户将其解绑\n\n当前绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
 }
 func bUnBindInlineBtn(c *tb.Callback) {
+	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Unbind: " + c.Data)
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
 	if ok, _ := DelData(db, u.msId); !ok {
@@ -191,6 +159,7 @@ func bUnBindInlineBtn(c *tb.Callback) {
 	bot.Respond(c)
 }
 func bExport(m *tb.Message) {
+	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Export")
 	type MsMiniData struct {
 		Alias        string
 		ClientId     string
@@ -280,6 +249,7 @@ func bOnText(m *tb.Message) {
 	}
 }
 func bTask(m *tb.Message) {
+	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start SignTask")
 	for _, a := range admin {
 		if a == m.Chat.ID {
 			SignTask()
@@ -287,4 +257,44 @@ func bTask(m *tb.Message) {
 		}
 	}
 	bot.Send(m.Chat, "您没有权限执行此操作~")
+}
+func bLog(m *tb.Message) {
+	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Get Logs")
+	flag := 0
+	for _, a := range admin {
+		if a == m.Chat.ID {
+			flag = 1
+		}
+	}
+	if flag == 0 {
+		bot.Send(m.Chat, "您没有权限执行此操作~")
+		return
+	}
+	logs := GetRecentLogs(bLogBasePath, 5)
+	var inlineKeys [][]tb.InlineButton
+	for _, log := range logs {
+		inlineBtn := tb.InlineButton{
+			Unique: "log" + strings.Replace(strings.TrimSuffix(filepath.Base(log), ".log"), "-", "", -1),
+			Text:   filepath.Base(log),
+			Data:   filepath.Base(log),
+		}
+		bot.Handle(&inlineBtn, bLogsInlineBtn)
+		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
+	}
+	_, err := bot.Send(m.Chat, "选择一个日志", &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
+	if err != nil {
+		logger.Println(err)
+	}
+}
+func bLogsInlineBtn(c *tb.Callback) {
+	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Get Logs: " + c.Data)
+	//fmt.Println(c.Data)
+	//logger.Println(bLogBasePath + c.Data + ".log")
+	logfile := &tb.Document{File: tb.FromDisk(bLogBasePath + c.Data), FileName: c.Data, MIME: "text/plain"}
+	_, err := bot.Send(c.Message.Chat, logfile)
+	if err != nil {
+		logger.Println(err)
+		return
+	}
+	bot.Respond(c)
 }
