@@ -91,7 +91,7 @@ func bMyInlineBtn(c *tb.Callback) {
 	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Get User Info")
 	r := QueryDataByMS(db, c.Data)
 	u := r[0]
-	bot.Send(c.Message.Chat, "信息\n别名："+u.alias+"\nMS_ID(MD5): "+u.msId+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05")+"\n\nrefresh_token: "+u.refreshToken)
+	bot.Send(c.Message.Chat, "信息\n别名："+u.alias+"\nMS_ID(MD5): "+u.msId+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05"))
 	bot.Respond(c)
 }
 
