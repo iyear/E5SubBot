@@ -41,15 +41,14 @@ E5订阅为开发者订阅，只要调用相关API就有可能续期
 6. 复制整个浏览框内容，在机器人对话框回复 `链接+空格+别名(用于管理账户)`
 例如：`http://localhost/e5sub/?code=abcd MyE5`，等待机器人绑定后即完成
 ### 命令
-```
-/my 查看已绑定账户信息
-/bind  绑定新账户
-/unbind 解绑账户
-/export 导出账户信息(json格式)
-/help 帮助
-/task 手动执行一次任务(管理员)
-/log 获取最近日志文件(管理员)
-```
+> /my 查看已绑定账户信息
+> /bind  绑定新账户
+> /unbind 解绑账户
+> /export 导出账户信息(json格式)
+> /help 帮助
+> /task 手动执行一次任务(管理员)
+> /log 获取最近日志文件(管理员)
+
 ## 自行部署
 需要MySQL>=5.5版本(开发本地环境是5.5，高的低的没测试过，应该也可以)
 Bot创建教程:[Google](https://www.google.com/search?q=telegram+Bot%E5%88%9B%E5%BB%BA%E6%95%99%E7%A8%8B)
@@ -120,13 +119,15 @@ mysql:
   database: e5sub
 ```
 ### 命令
->   /my 查看已绑定账户信息
- 	/bind  绑定新账户
- 	/unbind 解绑账户
- 	/export 导出账户信息(JSON格式)
- 	/help 帮助
- 	/task 手动执行一次任务(管理员)
- 	/log 获取最近日志文件(管理员)
+```
+/my 查看已绑定账户信息  
+/bind  绑定新账户  
+/unbind 解绑账户  
+/export 导出账户信息(JSON格式) 
+/help 帮助  
+/task 手动执行一次任务(管理员)  
+/log 获取最近日志文件(管理员)  
+```
 ## 注意事项
 > 更新时间与北京时间不符
 
