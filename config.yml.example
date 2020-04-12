@@ -2,6 +2,7 @@ bot_token: xxx
 #socks5: 127.0.0.1:1080
 bindmax: 3
 admin: 555,666,777
+errlimit: 5
 notice: "aaa\nbbb"
 cron: "1 */3 * * *"
 #docker部署默认无需修改mysql配置

@@ -53,6 +53,9 @@ func init() {
 	err := viper.ReadInConfig()
 	CheckErr(err)
 
+	viper.SetDefault("errlimit", 5)
+	viper.SetDefault("bindmax", 5)
+
 	BindMaxNum = viper.GetInt("bindmax")
 	ErrMaxTimes = viper.GetInt("errlimit")
 	notice = viper.GetString("notice")
