@@ -129,6 +129,10 @@ mysql:
 
 不要带"+"号
 
+> 错误:Can't create more than max_prepared_stmt_count statements (current value: 16382)
+
+没有关闭db导致触发mysql并发上限，请更新至v0.1.9
+
 ## 小总结
 #### 得到了什么？
 - git的基本操作:add,commit,pull,push.但是对代码合并与冲突解决没有得到足够的实践和深入  
