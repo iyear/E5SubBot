@@ -61,7 +61,7 @@ func BindUser(m *tb.Message, cid, cse string) error {
 	}
 	//MS information has gotten
 	bot.Send(m.Chat, "MS_ID(MD5)： "+u.msId+"\nuserPrincipalName： "+gjson.Get(info, "userPrincipalName").String()+"\ndisplayName： "+gjson.Get(info, "displayName").String()+"\n")
-	if ok, err := AddData(db, u); !ok {
+	if ok, err := AddData(u); !ok {
 		logger.Printf("%d Bind error: %s\n", m.Chat.ID, err)
 		return err
 	}
@@ -71,13 +71,13 @@ func BindUser(m *tb.Message, cid, cse string) error {
 
 //get bind num
 func GetBindNum(tgId int64) int {
-	data := QueryDataByTG(db, tgId)
+	data := QueryDataByTG(tgId)
 	return len(data)
 }
 
 //return true => exist
 func MSAppIsExist(tgId int64, clientId string) bool {
-	data := QueryDataByTG(db, tgId)
+	data := QueryDataByTG(tgId)
 	var res MSData
 	for _, res = range data {
 		if res.clientId == clientId {
@@ -98,7 +98,7 @@ func SignTask() {
 	SignOk = make(map[int64]int)
 	fmt.Println("----Task Begin----")
 	fmt.Println("Time:" + time.Now().Format("2006-01-02 15:04:05"))
-	data := QueryDataAll(db)
+	data := QueryDataAll()
 	num = len(data)
 	fmt.Println("Start Sign")
 	//签到任务
@@ -130,7 +130,7 @@ func SignTask() {
 			continue
 		}
 		u.uptime = time.Now().Unix()
-		if ok, err := UpdateData(db, u); !ok {
+		if ok, err := UpdateData(u); !ok {
 			logger.Println(u.msId+" ", err)
 			bot.Send(chat, pre+err.Error(), tmpBtn)
 			SignErr = append(SignErr, se)
@@ -154,7 +154,7 @@ func SignTask() {
 		//错误上限账户清退
 		if ErrorTimes[u.msId] == ErrMaxTimes {
 			logger.Println(u.msId + " Error Limit")
-			if ok, err := DelData(db, u.msId); !ok {
+			if ok, err := DelData(u.msId); !ok {
 				logger.Println(err)
 			} else {
 				UnbindUser = append(UnbindUser, u.msId+" ( @"+chat.Username+" )")

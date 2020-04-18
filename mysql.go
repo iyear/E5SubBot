@@ -17,7 +17,12 @@ type MSData struct {
 }
 
 //update data by msId
-func UpdateData(db *sql.DB, u MSData) (bool, error) {
+func UpdateData(u MSData) (bool, error) {
+	db, err := sql.Open(dbDriverName, dbPath)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer db.Close()
 	sqlString := `UPDATE users set tg_id=?,refresh_token=?,uptime=?,alias=?,client_id=?,client_secret=?,other=?  where ms_id=?`
 	stmt, err := db.Prepare(sqlString)
 	if err != nil {
@@ -31,7 +36,12 @@ func UpdateData(db *sql.DB, u MSData) (bool, error) {
 }
 
 //add data
-func AddData(db *sql.DB, u MSData) (bool, error) {
+func AddData(u MSData) (bool, error) {
+	db, err := sql.Open(dbDriverName, dbPath)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer db.Close()
 	sqlString := `
 	INSERT INTO users (tg_id, refresh_token,ms_id, uptime,alias,client_id,client_secret,other)
 	VALUES (?,?,?,?,?,?,?,?)`
@@ -47,7 +57,12 @@ func AddData(db *sql.DB, u MSData) (bool, error) {
 }
 
 //del data by ms_id
-func DelData(db *sql.DB, msId string) (bool, error) {
+func DelData(msId string) (bool, error) {
+	db, err := sql.Open(dbDriverName, dbPath)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer db.Close()
 	sqlString := `delete from users where ms_id=?`
 	stmt, err := db.Prepare(sqlString)
 	if err != nil {
@@ -78,26 +93,45 @@ func QueryData(rows *sql.Rows) []MSData {
 	}
 	return result
 }
-func QueryDataByMS(db *sql.DB, msId string) []MSData {
+func QueryDataByMS(msId string) []MSData {
+	db, err := sql.Open(dbDriverName, dbPath)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer db.Close()
 	rows, err := db.Query("select  * from users where ms_id = ?", msId)
 	CheckErr(err)
 	return QueryData(rows)
 }
 
-func QueryDataAll(db *sql.DB) []MSData {
+func QueryDataAll() []MSData {
+	db, err := sql.Open(dbDriverName, dbPath)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer db.Close()
 	rows, err := db.Query("select  * from users ")
 	CheckErr(err)
 	return QueryData(rows)
 }
 
 //query data by tg_id
-func QueryDataByTG(db *sql.DB, tgId int64) []MSData {
+func QueryDataByTG(tgId int64) []MSData {
+	db, err := sql.Open(dbDriverName, dbPath)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer db.Close()
 	rows, err := db.Query("select  * from users where tg_id = ?", tgId)
 	CheckErr(err)
 	return QueryData(rows)
 }
-func CreateTB(db *sql.DB) (bool, error) {
-
+func CreateTB() (bool, error) {
+	db, err := sql.Open(dbDriverName, dbPath)
+	if err != nil {
+		logger.Println(err)
+	}
+	defer db.Close()
 	sqltable := `
     create table if not exists users
 	(
@@ -110,7 +144,7 @@ func CreateTB(db *sql.DB) (bool, error) {
 	client_secret VARCHAR(255),
 	other TEXT
 	);`
-	_, err := db.Exec(sqltable)
+	_, err = db.Exec(sqltable)
 	if err != nil {
 		return false, err
 	}

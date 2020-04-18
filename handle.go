@@ -82,7 +82,7 @@ func bStart(m *tb.Message) {
 
 func bMy(m *tb.Message) {
 	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Manager Users")
-	data := QueryDataByTG(db, m.Chat.ID)
+	data := QueryDataByTG(m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
@@ -97,7 +97,7 @@ func bMy(m *tb.Message) {
 }
 func bMyInlineBtn(c *tb.Callback) {
 	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Get User Info")
-	r := QueryDataByMS(db, c.Data)
+	r := QueryDataByMS(c.Data)
 	u := r[0]
 	bot.Send(c.Message.Chat, "信息\n别名："+u.alias+"\nMS_ID(MD5): "+u.msId+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05"))
 	bot.Respond(c)
@@ -140,7 +140,7 @@ func bBind2(m *tb.Message) {
 
 func bUnBind(m *tb.Message) {
 	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Unbind")
-	data := QueryDataByTG(db, m.Chat.ID)
+	data := QueryDataByTG(m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
@@ -155,9 +155,9 @@ func bUnBind(m *tb.Message) {
 }
 func bUnBindInlineBtn(c *tb.Callback) {
 	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Unbind: " + c.Data)
-	r := QueryDataByMS(db, c.Data)
+	r := QueryDataByMS(c.Data)
 	u := r[0]
-	if ok, _ := DelData(db, u.msId); !ok {
+	if ok, _ := DelData(u.msId); !ok {
 		logger.Println(u.msId + " UnBind ERROR")
 		bot.Send(c.Message.Chat, "解绑失败!")
 		return
@@ -176,7 +176,7 @@ func bExport(m *tb.Message) {
 		Other        string
 	}
 	var MsMini []MsMiniData
-	data := QueryDataByTG(db, m.Chat.ID)
+	data := QueryDataByTG(m.Chat.ID)
 	if len(data) == 0 {
 		bot.Send(m.Chat, "你还没有绑定过账户嗷~")
 		return

@@ -18,7 +18,6 @@ var (
 	BotToken string
 	Socks5   string
 	bot      *tb.Bot
-	db       *sql.DB
 	logger   *log.Logger
 )
 
@@ -33,6 +32,8 @@ const (
  |______|____/_____/ \__,_|_.__/|____/ \___/ \__|
 `
 )
+
+var dbPath string
 
 func main() {
 	BotStart()
@@ -84,17 +85,17 @@ func init() {
 	port := viper.GetString("mysql.port")
 	pwd := viper.GetString("mysql.password")
 	database := viper.GetString("mysql.database")
-	path := strings.Join([]string{user, ":", pwd, "@tcp(", host, ":", port, ")/", database, "?charset=utf8"}, "")
+	dbPath = strings.Join([]string{user, ":", pwd, "@tcp(", host, ":", port, ")/", database, "?charset=utf8"}, "")
 	//fmt.Println(path)
-	db, err = sql.Open(dbDriverName, path)
+	db, err := sql.Open(dbDriverName, dbPath)
 	if err != nil {
 		logger.Fatal(err)
 	}
 	logger.Println("Connect MySQL Success!")
-	if ok, err := CreateTB(db); !ok {
+	if ok, err := CreateTB(); !ok {
 		logger.Fatal(err)
 	}
-
+	defer db.Close()
 	BotToken = viper.GetString("bot_token")
 	Socks5 = viper.GetString("socks5")
 	//set bot
