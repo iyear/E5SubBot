@@ -2,8 +2,6 @@ version: "3"
 services:
   mysql:
     image: mariadb:10.4.12
-    ports:
-      - 3306:3306
     command: --character-set-server=utf8mb4
     volumes:
       - ./mysql/data:/var/lib/mysql
