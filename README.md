@@ -4,7 +4,7 @@
 ![](https://img.shields.io/badge/license-GPL-lightgrey.svg?style=flat-square)
 ![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=green&style=flat-square)
 
-English | [简体中文](https://github.com/iyear/E5SubBot/README_zhCN.md)
+English | [简体中文](https://github.com/iyear/E5SubBot/blob/master/README_zhCN.md)
 
 A Simple Telebot for E5 Renewal
 
