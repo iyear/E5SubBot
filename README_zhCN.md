@@ -107,7 +107,7 @@ mysql:
 | bot_token  | 更换为自己的`BotToken` |
 | socks5  | `Socks5`代理,不需要删去即可.例如:`127.0.0.1:1080` |
 |notice|公告.合并至`/help`|
-|admin|管理员`tgid`，前往https://t.me/userinfobot获取，用`,`隔开;管理员权限: 手动调用任务，获得任务总反馈|
+|admin|管理员`tgid`，前往 https://t.me/userinfobot 获取，用`,`隔开;管理员权限: 手动调用任务，获得任务总反馈|
 |errlimit|单账户最大出错次数，满后自动解绑单账户并发送通知，不限制错误次数将值改为负数`(-1)`即可;bot重启后会清零所有错误次数|
 |cron|API调用频率，使用cron表达式|
 |bindmax|最大可绑定数|
