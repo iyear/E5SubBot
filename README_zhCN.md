@@ -139,7 +139,12 @@ mysql:
 > 长时间运行崩溃
 
 疑似内存泄露，尚未解决，请自行采用守护进程运行或定时重启`Bot`
+## 更多功能
+如果你还想支持新的特性，请使用 FeatHub 进行投票，我们将综合考虑投票结果等因素来确定开发的优先级。
 
+[![Feature Requests](https://cloud.githubusercontent.com/assets/390379/10127973/045b3a96-6560-11e5-9b20-31a2032956b2.png)](http://feathub.com/NervJS/taro)  
+
+[![Feature Requests](https://feathub.com/iyear/E5SubBot?format=svg)](https://feathub.com/iyear/E5SubBot)  
 ## 做出贡献
 - 提供其他语言的文档
 - 为代码运行提供帮助
