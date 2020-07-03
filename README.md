@@ -152,7 +152,7 @@ Suspected memory leak. Not yet resolved, please run the daemon or restart Bot re
 - ……
 ## More Functions
 If you still want to support new features, please use FeatHub to vote. We will consider the voting results and other factors to determine the development priority.
-
+[![Feature Requests](https://cloud.githubusercontent.com/assets/390379/10127973/045b3a96-6560-11e5-9b20-31a2032956b2.png)](http://feathub.com/NervJS/taro)
 [![Feature Requests](https://feathub.com/iyear/E5SubBot?format=svg)](https://feathub.com/iyear/E5SubBot)
 ## License
 
