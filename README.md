@@ -150,6 +150,10 @@ Suspected memory leak. Not yet resolved, please run the daemon or restart Bot re
 - Provide help for code operation
 - Suggests user interaction
 - ……
+## More Functions
+If you still want to support new features, please use FeatHub to vote. We will consider the voting results and other factors to determine the development priority.
+
+[![Feature Requests](https://feathub.com/iyear/E5SubBot?format=svg)](https://feathub.com/iyear/E5SubBot)
 ## License
 
 GPLv3 
