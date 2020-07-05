@@ -60,8 +60,8 @@ func MSFirGetToken(code, cid, cse string) (access string, refresh string, Error 
 	return "", "", errors.New(string(content))
 }
 
-//return access_token
-func MSGetToken(refreshtoken, cid, cse string) (access string, Error error) {
+//return access_token and new refresh token
+func MSGetToken(refreshtoken, cid, cse string) (access string, newRefreshToken string, Error error) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
@@ -76,25 +76,25 @@ func MSGetToken(refreshtoken, cid, cse string) (access string, Error error) {
 	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
 	if err != nil {
 		logger.Println(err)
-		return "", err
+		return "", "", err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Println(err)
-		return "", err
+		return "", "", err
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logger.Println(err)
-		return "", err
+		return "", "", err
 	}
 	//fmt.Println(string(content))
 	//fmt.Println(gjson.Get(string(content), "access_token").String())
 	if gjson.Get(string(content), "token_type").String() == "Bearer" {
-		return gjson.Get(string(content), "access_token").String(), nil
+		return gjson.Get(string(content), "access_token").String(), gjson.Get(string(content), "refresh_token").String(), nil
 	}
-	return "", errors.New(string(content))
+	return "", "", errors.New(string(content))
 }
 
 //Get User's Information

@@ -104,7 +104,7 @@ func SignTask() {
 	//签到任务
 	for _, u := range data {
 		pre := "您的账户: " + u.alias + "\n在任务执行时出现了错误!\n错误:"
-		access, err := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
+		access, newRefreshToken, err := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
 		chat, _ := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
 
 		//生成解绑按钮
@@ -130,6 +130,7 @@ func SignTask() {
 			continue
 		}
 		u.uptime = time.Now().Unix()
+		u.refreshToken = newRefreshToken
 		if ok, err := UpdateData(u); !ok {
 			logger.Println(u.msId+" ", err)
 			bot.Send(chat, pre+err.Error(), tmpBtn)
