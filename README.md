@@ -137,6 +137,10 @@ Failure to close `db` leads to triggering `mysql` concurrency limit, please upda
 
 Suspected memory leak. Not yet resolved, please run the daemon or restart Bot regularly.
 
+> Unable to create application via bot
+
+https://t.me/e5subbot/5201
+
 ## Third-Party
 - [Telebot](https://gopkg.in/tucnak/telebot)
 - [Mysql_driver](https://github.com/go-sql-driver/mysql)
