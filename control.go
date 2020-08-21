@@ -104,9 +104,11 @@ func SignTask() {
 	//签到任务
 	for _, u := range data {
 		pre := "您的账户: " + u.alias + "\n在任务执行时出现了错误!\n错误:"
-		access, newRefreshToken, err := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
-		chat, _ := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
-
+		chat, err := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
+		if err != nil {
+			logger.Println(err)
+			continue
+		}
 		//生成解绑按钮
 		var inlineKeys [][]tb.InlineButton
 		UnBindBtn := tb.InlineButton{Unique: "un" + u.msId, Text: "点击解绑该账户", Data: u.msId}
@@ -115,6 +117,8 @@ func SignTask() {
 		tmpBtn := &tb.ReplyMarkup{InlineKeyboard: inlineKeys}
 
 		se := u.msId + " ( @" + chat.Username + " )"
+		access, newRefreshToken, err := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
+
 		if err != nil {
 			logger.Println(u.msId+" ", err)
 			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
