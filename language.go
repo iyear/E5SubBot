@@ -173,7 +173,7 @@ const jsonData = `{
 					"msgstr"      : ["Binding……"]
 				},{
 					"msgid"       : "bindSuccess",
-					"msgstr"      : ["绑定成功!"]
+					"msgstr"      : ["Binding succeeded!"]
 				},{
 					"msgid"       : "logs",
 					"msgstr"      : ["Select a log."]
