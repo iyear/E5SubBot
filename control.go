@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/chai2010/gettext-go"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -22,7 +23,7 @@ func BindUser(m *tb.Message, cid, cse string) error {
 	tmp := strings.Split(m.Text, " ")
 	if len(tmp) != 2 {
 		logger.Printf("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
-		return errors.New("绑定格式错误")
+		return errors.New(gettext.Gettext("bindFormatError"))
 	}
 	logger.Println("alias: " + tmp[1])
 	alias := tmp[1]
@@ -35,7 +36,7 @@ func BindUser(m *tb.Message, cid, cse string) error {
 	}
 
 	//token has gotten
-	bot.Send(m.Chat, "Token获取成功!")
+	bot.Send(m.Chat, gettext.Gettext("getToken"))
 	info, err := MSGetUserInfo(access)
 	//fmt.Printf("TGID:%d Refresh Token: %s\n", m.Chat.ID, refresh)
 	if err != nil {
@@ -57,7 +58,7 @@ func BindUser(m *tb.Message, cid, cse string) error {
 	//MS User Is Exist
 	if MSAppIsExist(u.tgId, u.clientId) {
 		logger.Printf("%d Bind error:MSUserHasExisted\n", m.Chat.ID)
-		return errors.New("该应用已经绑定过了，无需重复绑定")
+		return errors.New(gettext.Gettext("alreadyBind"))
 	}
 	//MS information has gotten
 	bot.Send(m.Chat, "MS_ID(MD5)： "+u.msId+"\nuserPrincipalName： "+gjson.Get(info, "userPrincipalName").String()+"\ndisplayName： "+gjson.Get(info, "displayName").String()+"\n")
@@ -103,18 +104,22 @@ func SignTask() {
 	fmt.Println("Start Sign")
 	//签到任务
 	for _, u := range data {
-		pre := "您的账户: " + u.alias + "\n在任务执行时出现了错误!\n错误:"
-		access, newRefreshToken, err := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
-		chat, _ := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
-
+		pre := fmt.Sprintf(gettext.Gettext("taskError"), u.alias)
+		chat, err := bot.ChatByID(strconv.FormatInt(u.tgId, 10))
+		if err != nil {
+			logger.Println(err)
+			continue
+		}
 		//生成解绑按钮
 		var inlineKeys [][]tb.InlineButton
-		UnBindBtn := tb.InlineButton{Unique: "un" + u.msId, Text: "点击解绑该账户", Data: u.msId}
+		UnBindBtn := tb.InlineButton{Unique: "un" + u.msId, Text: gettext.Gettext("clickToUnBind"), Data: u.msId}
 		bot.Handle(&UnBindBtn, bUnBindInlineBtn)
 		inlineKeys = append(inlineKeys, []tb.InlineButton{UnBindBtn})
 		tmpBtn := &tb.ReplyMarkup{InlineKeyboard: inlineKeys}
 
 		se := u.msId + " ( @" + chat.Username + " )"
+		access, newRefreshToken, err := MSGetToken(u.refreshToken, u.clientId, u.clientSecret)
+
 		if err != nil {
 			logger.Println(u.msId+" ", err)
 			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
@@ -159,7 +164,7 @@ func SignTask() {
 				logger.Println(err)
 			} else {
 				UnbindUser = append(UnbindUser, u.msId+" ( @"+chat.Username+" )")
-				_, err = bot.Send(chat, "您的账户因达到错误上限而被自动解绑\n后会有期!\n\n别名: "+u.alias+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret)
+				_, err = bot.Send(chat, gettext.Gettext("unBindByMaxLimit")+u.alias+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret)
 				if err != nil {
 					logger.Println(err)
 				}
@@ -168,7 +173,7 @@ func SignTask() {
 		}
 		if !isSend[u.tgId] {
 			//静默发送，过多消息很烦
-			_, err = bot.Send(chat, "任务反馈\n时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)), &tb.SendOptions{DisableNotification: true})
+			_, err = bot.Send(chat, gettext.Gettext("taskFeedback")+time.Now().Format("2006-01-02 15:04:05")+gettext.Gettext("result")+strconv.Itoa(SignOk[u.tgId])+"/"+strconv.Itoa(GetBindNum(u.tgId)), &tb.SendOptions{DisableNotification: true})
 			if err != nil {
 				logger.Println(err)
 			}
@@ -186,7 +191,7 @@ func SignTask() {
 	}
 	for _, a := range admin {
 		chat, _ := bot.ChatByID(strconv.FormatInt(a, 10))
-		bot.Send(chat, "任务反馈(管理员)\n完成时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(signOk)+"/"+strconv.Itoa(num)+"\n错误账户:\n"+ErrUserStr+"\n清退账户:\n"+UnbindUserStr)
+		bot.Send(chat, gettext.Gettext("taskFeedbackAdmin")+time.Now().Format("2006-01-02 15:04:05")+gettext.Gettext("result")+strconv.Itoa(signOk)+"/"+strconv.Itoa(num)+gettext.Gettext("wrongAccount")+ErrUserStr+gettext.Gettext("clearingAccount")+UnbindUserStr)
 	}
 	fmt.Println("----Task End----")
 }
