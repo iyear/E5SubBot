@@ -112,6 +112,7 @@ mysql:
 |cron|API调用频率，使用cron表达式|
 |bindmax|最大可绑定数|
 |mysql|mysql配置，请提前创建数据库|
+|lang|简体中文(默认)：`zh_CN` English:`en_US`|
 
 ### 命令
 ```
