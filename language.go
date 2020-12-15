@@ -5,7 +5,7 @@ const jsonData = `{
 			"LC_MESSAGES": {
 				"resources.json": [{
 					"msgid"       : "helpContent",
-					"msgstr"      : ["命令：\n/my 查看已绑定账户信息\n/bind  绑定新账户\n/unbind 解绑账户\n/export 导出账户信息(JSON格式)\n/help 帮助\n/task 手动执行一次任务(管理员)\n/log 获取最近日志文件(管理员)\n源代码：https://github.com/rainerosion/E5SubBot\n原作者：https://github.com/iyear/E5SubBot"]
+					"msgstr"      : ["命令：\n/my 查看已绑定账户信息\n/bind  绑定新账户\n/unbind 解绑账户\n/export 导出账户信息(JSON格式)\n/help 帮助\n/task 手动执行一次任务(管理员)\n/log 获取最近日志文件(管理员)\n源码及使用方法：https://github.com/iyear/E5SubBot"]
 				},{
 					"msgid"       : "welcome",
 					"msgstr"      : ["欢迎使用E5SubBot!"]
@@ -113,7 +113,7 @@ const jsonData = `{
 			"LC_MESSAGES": {
 				"resources.json": [{
 					"msgid"       : "helpContent",
-					"msgstr"      : ["/my View bound account information\n/bind Bind new account\n/unbind Unbind account\n/export Export account information (JSON format)\n/help help\n/task Manually execute a task (Bot Administrator)\n/log Get the most recent log file (Bot Administrator)\nSource Code：https://github.com/rainerosion/E5SubBot\nOriginal Author：https://github.com/iyear/E5SubBot"]
+					"msgstr"      : ["/my View bound account information\n/bind Bind new account\n/unbind Unbind account\n/export Export account information (JSON format)\n/help help\n/task Manually execute a task (Bot Administrator)\n/log Get the most recent log file (Bot Administrator)\nSource Code：https://github.com/iyear/E5SubBot"]
 				},{
 					"msgid"       : "welcome",
 					"msgstr"      : ["Welcome to E5SubBot!"]
