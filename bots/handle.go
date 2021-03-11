@@ -1,4 +1,4 @@
-package main
+package bots
 
 import (
 	"encoding/json"
@@ -6,6 +6,10 @@ import (
 	"github.com/spf13/viper"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"io/ioutil"
+	"main/db"
+	"main/logger"
+	"main/outlook"
+	"main/util"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -51,7 +55,7 @@ func init() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
-	CheckErr(err)
+	util.CheckErr(err)
 
 	viper.SetDefault("errlimit", 5)
 	viper.SetDefault("bindmax", 5)
@@ -82,13 +86,13 @@ func bStart(m *tb.Message) {
 
 func bMy(m *tb.Message) {
 	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Manager Users")
-	data := QueryDataByTG(m.Chat.ID)
+	data := db.QueryDataByTG(m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
-			Unique: "my" + u.msId,
-			Text:   u.alias,
-			Data:   u.msId,
+			Unique: "my" + u.MsId,
+			Text:   u.Alias,
+			Data:   u.MsId,
 		}
 		bot.Handle(&inlineBtn, bMyInlineBtn)
 		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
@@ -97,16 +101,16 @@ func bMy(m *tb.Message) {
 }
 func bMyInlineBtn(c *tb.Callback) {
 	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Get User Info")
-	r := QueryDataByMS(c.Data)
+	r := db.QueryDataByMS(c.Data)
 	u := r[0]
-	bot.Send(c.Message.Chat, "信息\n别名："+u.alias+"\nMS_ID(MD5): "+u.msId+"\nclient_id: "+u.clientId+"\nclient_secret: "+u.clientSecret+"\n最近更新时间: "+time.Unix(u.uptime, 0).Format("2006-01-02 15:04:05"))
+	bot.Send(c.Message.Chat, "信息\n别名："+u.Alias+"\nMS_ID(MD5): "+u.MsId+"\nclient_id: "+u.ClientId+"\nclient_secret: "+u.ClientSecret+"\n最近更新时间: "+time.Unix(u.Uptime, 0).Format("2006-01-02 15:04:05"))
 	bot.Respond(c)
 }
 
 func bBind1(m *tb.Message) {
 	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Bind")
 	logger.Println("ReApp: " + strconv.FormatInt(m.Chat.ID, 10))
-	bot.Send(m.Chat, "应用注册： [点击直达]("+MSGetReAppUrl()+")", tb.ModeMarkdown)
+	bot.Send(m.Chat, "应用注册： [点击直达]("+outlook.MSGetReAppUrl()+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复client_id+空格+client_secret", &tb.ReplyMarkup{ForceReply: true})
 	if err != nil {
 		logger.Println(err)
@@ -120,14 +124,14 @@ func bBind2(m *tb.Message) {
 	logger.Println("Auth: " + strconv.FormatInt(m.Chat.ID, 10))
 	tmp := strings.Split(m.Text, " ")
 	if len(tmp) != 2 {
-		logger.Printf("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
+		logger.Println("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
 		bot.Send(m.Chat, "错误的格式")
 		return
 	}
 	logger.Println("client_id: " + tmp[0] + " client_secret: " + tmp[1])
 	cid := tmp[0]
 	cse := tmp[1]
-	bot.Send(m.Chat, "授权账户： [点击直达]("+MSGetAuthUrl(cid)+")", tb.ModeMarkdown)
+	bot.Send(m.Chat, "授权账户： [点击直达]("+outlook.MSGetAuthUrl(cid)+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复http://localhost/…… + 空格 + 别名(用于管理)", &tb.ReplyMarkup{ForceReply: true})
 	if err != nil {
 		logger.Println(err)
@@ -140,13 +144,13 @@ func bBind2(m *tb.Message) {
 
 func bUnBind(m *tb.Message) {
 	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Unbind")
-	data := QueryDataByTG(m.Chat.ID)
+	data := db.QueryDataByTG(m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
-			Unique: "unbind" + u.msId,
-			Text:   u.alias,
-			Data:   u.msId,
+			Unique: "unbind" + u.MsId,
+			Text:   u.Alias,
+			Data:   u.MsId,
 		}
 		bot.Handle(&inlineBtn, bUnBindInlineBtn)
 		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
@@ -155,14 +159,14 @@ func bUnBind(m *tb.Message) {
 }
 func bUnBindInlineBtn(c *tb.Callback) {
 	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Unbind: " + c.Data)
-	r := QueryDataByMS(c.Data)
+	r := db.QueryDataByMS(c.Data)
 	u := r[0]
-	if ok, _ := DelData(u.msId); !ok {
-		logger.Println(u.msId + " UnBind ERROR")
+	if ok, _ := db.DelData(u.MsId); !ok {
+		logger.Println(u.MsId + " UnBind ERROR")
 		bot.Send(c.Message.Chat, "解绑失败!")
 		return
 	}
-	logger.Println(u.msId + " UnBind Success")
+	logger.Println(u.MsId + " UnBind Success")
 	bot.Send(c.Message.Chat, "解绑成功!")
 	bot.Respond(c)
 }
@@ -176,18 +180,18 @@ func bExport(m *tb.Message) {
 		Other        string
 	}
 	var MsMini []MsMiniData
-	data := QueryDataByTG(m.Chat.ID)
+	data := db.QueryDataByTG(m.Chat.ID)
 	if len(data) == 0 {
 		bot.Send(m.Chat, "你还没有绑定过账户嗷~")
 		return
 	}
 	for _, u := range data {
 		var ms MsMiniData
-		ms.RefreshToken = u.refreshToken
-		ms.Alias = u.alias
-		ms.ClientId = u.clientId
-		ms.ClientSecret = u.clientSecret
-		ms.Other = u.other
+		ms.RefreshToken = u.RefreshToken
+		ms.Alias = u.Alias
+		ms.ClientId = u.ClientId
+		ms.ClientSecret = u.ClientSecret
+		ms.Other = u.Other
 		MsMini = append(MsMini, ms)
 	}
 	//MarshalIndent是为json+美化,/t表缩进
@@ -278,7 +282,7 @@ func bLog(m *tb.Message) {
 		bot.Send(m.Chat, "您没有权限执行此操作~")
 		return
 	}
-	logs := GetRecentLogs(bLogBasePath, 5)
+	logs := util.GetRecentLogs(bLogBasePath, 5)
 	var inlineKeys [][]tb.InlineButton
 	for _, log := range logs {
 		inlineBtn := tb.InlineButton{

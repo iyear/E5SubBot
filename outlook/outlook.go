@@ -1,9 +1,10 @@
-package main
+package outlook
 
 import (
 	"errors"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
+	"main/logger"
 	"net/http"
 	"net/url"
 	"strings"

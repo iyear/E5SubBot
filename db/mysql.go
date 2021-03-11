@@ -1,19 +1,21 @@
-package main
+package db
 
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"main/logger"
+	"main/util"
 )
 
 type MSData struct {
-	tgId         int64
-	refreshToken string
-	msId         string
-	uptime       int64
-	alias        string
-	clientId     string
-	clientSecret string
-	other        string
+	TgId         int64
+	RefreshToken string
+	MsId         string
+	Uptime       int64
+	Alias        string
+	ClientId     string
+	ClientSecret string
+	Other        string
 }
 
 //update data by msId
@@ -28,7 +30,7 @@ func UpdateData(u MSData) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	_, err = stmt.Exec(u.tgId, u.refreshToken, u.uptime, u.alias, u.clientId, u.clientSecret, u.other, u.msId)
+	_, err = stmt.Exec(u.TgId, u.RefreshToken, u.Uptime, u.Alias, u.ClientId, u.ClientSecret, u.Other, u.MsId)
 	if err != nil {
 		return false, err
 	}
@@ -49,7 +51,7 @@ func AddData(u MSData) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	_, err = stmt.Exec(u.tgId, u.refreshToken, u.msId, u.uptime, u.alias, u.clientId, u.clientSecret, u.other)
+	_, err = stmt.Exec(u.TgId, u.RefreshToken, u.MsId, u.Uptime, u.Alias, u.ClientId, u.ClientSecret, u.Other)
 	if err != nil {
 		return false, err
 	}
@@ -100,7 +102,7 @@ func QueryDataByMS(msId string) []MSData {
 	}
 	defer db.Close()
 	rows, err := db.Query("select  * from users where ms_id = ?", msId)
-	CheckErr(err)
+	util.CheckErr(err)
 	return QueryData(rows)
 }
 
@@ -111,7 +113,7 @@ func QueryDataAll() []MSData {
 	}
 	defer db.Close()
 	rows, err := db.Query("select  * from users ")
-	CheckErr(err)
+	util.CheckErr(err)
 	return QueryData(rows)
 }
 
@@ -123,7 +125,7 @@ func QueryDataByTG(tgId int64) []MSData {
 	}
 	defer db.Close()
 	rows, err := db.Query("select  * from users where tg_id = ?", tgId)
-	CheckErr(err)
+	util.CheckErr(err)
 	return QueryData(rows)
 }
 func CreateTB() (bool, error) {

@@ -21,3 +21,4 @@ config.yml
 /dist
 #Logs
 /log
+/.idea
