@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/viper"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"io/ioutil"
-	"main/db"
+	"main/core"
 	"main/logger"
 	"main/outlook"
 	"main/util"
@@ -86,7 +86,7 @@ func bStart(m *tb.Message) {
 
 func bMy(m *tb.Message) {
 	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Manager Users")
-	data := db.QueryDataByTG(m.Chat.ID)
+	data := core.QueryDataByTG(m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
@@ -101,7 +101,7 @@ func bMy(m *tb.Message) {
 }
 func bMyInlineBtn(c *tb.Callback) {
 	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Get User Info")
-	r := db.QueryDataByMS(c.Data)
+	r := core.QueryDataByMS(c.Data)
 	u := r[0]
 	bot.Send(c.Message.Chat, "信息\n别名："+u.Alias+"\nMS_ID(MD5): "+u.MsId+"\nclient_id: "+u.ClientId+"\nclient_secret: "+u.ClientSecret+"\n最近更新时间: "+time.Unix(u.Uptime, 0).Format("2006-01-02 15:04:05"))
 	bot.Respond(c)
@@ -110,7 +110,7 @@ func bMyInlineBtn(c *tb.Callback) {
 func bBind1(m *tb.Message) {
 	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Bind")
 	logger.Println("ReApp: " + strconv.FormatInt(m.Chat.ID, 10))
-	bot.Send(m.Chat, "应用注册： [点击直达]("+outlook.MSGetReAppUrl()+")", tb.ModeMarkdown)
+	bot.Send(m.Chat, "应用注册： [点击直达]("+outlook.GetMSRegisterAppUrl()+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复client_id+空格+client_secret", &tb.ReplyMarkup{ForceReply: true})
 	if err != nil {
 		logger.Println(err)
@@ -131,7 +131,7 @@ func bBind2(m *tb.Message) {
 	logger.Println("client_id: " + tmp[0] + " client_secret: " + tmp[1])
 	cid := tmp[0]
 	cse := tmp[1]
-	bot.Send(m.Chat, "授权账户： [点击直达]("+outlook.MSGetAuthUrl(cid)+")", tb.ModeMarkdown)
+	bot.Send(m.Chat, "授权账户： [点击直达]("+outlook.GetMSAuthUrl(cid)+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复http://localhost/…… + 空格 + 别名(用于管理)", &tb.ReplyMarkup{ForceReply: true})
 	if err != nil {
 		logger.Println(err)
@@ -144,7 +144,7 @@ func bBind2(m *tb.Message) {
 
 func bUnBind(m *tb.Message) {
 	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Unbind")
-	data := db.QueryDataByTG(m.Chat.ID)
+	data := core.QueryDataByTG(m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
@@ -159,9 +159,9 @@ func bUnBind(m *tb.Message) {
 }
 func bUnBindInlineBtn(c *tb.Callback) {
 	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Unbind: " + c.Data)
-	r := db.QueryDataByMS(c.Data)
+	r := core.QueryDataByMS(c.Data)
 	u := r[0]
-	if ok, _ := db.DelData(u.MsId); !ok {
+	if ok, _ := core.DelData(u.MsId); !ok {
 		logger.Println(u.MsId + " UnBind ERROR")
 		bot.Send(c.Message.Chat, "解绑失败!")
 		return
@@ -180,7 +180,7 @@ func bExport(m *tb.Message) {
 		Other        string
 	}
 	var MsMini []MsMiniData
-	data := db.QueryDataByTG(m.Chat.ID)
+	data := core.QueryDataByTG(m.Chat.ID)
 	if len(data) == 0 {
 		bot.Send(m.Chat, "你还没有绑定过账户嗷~")
 		return

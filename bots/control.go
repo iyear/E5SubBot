@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	tb "gopkg.in/tucnak/telebot.v2"
-	"main/db"
+	"main/core"
 	"main/logger"
 	"main/outlook"
 	"main/util"
@@ -29,7 +29,7 @@ func BindUser(m *tb.Message, cid, cse string) error {
 	Alias := tmp[1]
 	code := util.GetURLValue(tmp[0], "code")
 	//fmt.Println(code)
-	access, refresh, err := outlook.MSFirGetToken(code, cid, cse)
+	access, refresh, err := MSFirGetToken(code, cid, cse)
 	if err != nil {
 		logger.Println("%d Bind error:GetRefreshToken %s \n", m.Chat.ID, err.Error())
 		return err
@@ -37,14 +37,14 @@ func BindUser(m *tb.Message, cid, cse string) error {
 
 	//token has gotten
 	bot.Send(m.Chat, "Token获取成功!")
-	info, err := outlook.MSGetUserInfo(access)
+	info, err := outlook.GetUserInfo(access)
 	//fmt.Println("TgId:%d Refresh Token: %s\n", m.Chat.ID, refresh)
 	if err != nil {
 		logger.Println("%d Bind error:Getinfo %s \n", m.Chat.ID, err.Error())
 		return err
 	}
 
-	var u db.MSData
+	var u core.Client
 	u.TgId = m.Chat.ID
 	u.RefreshToken = refresh
 	//TG的Data传递最高64bytes,一些MsId超过了报错BUTTON_DATA_INVALID (0)，采取md5
@@ -62,7 +62,7 @@ func BindUser(m *tb.Message, cid, cse string) error {
 	}
 	//MS information has gotten
 	bot.Send(m.Chat, "MS_ID(MD5)： "+u.MsId+"\nuserPrincipalName： "+gjson.Get(info, "userPrincipalName").String()+"\ndisplayName： "+gjson.Get(info, "displayName").String()+"\n")
-	if ok, err := db.AddData(u); !ok {
+	if ok, err := core.AddData(u); !ok {
 		logger.Println("%d Bind error: %s\n", m.Chat.ID, err)
 		return err
 	}
@@ -72,14 +72,14 @@ func BindUser(m *tb.Message, cid, cse string) error {
 
 //get bind num
 func GetBindNum(TgId int64) int {
-	data := db.QueryDataByTG(TgId)
+	data := core.QueryDataByTG(TgId)
 	return len(data)
 }
 
 //return true => exist
 func MSAppIsExist(TgId int64, ClientId string) bool {
-	data := db.QueryDataByTG(TgId)
-	var res db.MSData
+	data := core.QueryDataByTG(TgId)
+	var res core.Client
 	for _, res = range data {
 		if res.ClientId == ClientId {
 			return true
@@ -99,7 +99,7 @@ func SignTask() {
 	SignOk = make(map[int64]int)
 	fmt.Println("----Task Begin----")
 	fmt.Println("Time:" + time.Now().Format("2006-01-02 15:04:05"))
-	data := db.QueryDataAll()
+	data := core.QueryDataAll()
 	num = len(data)
 	fmt.Println("Start Sign")
 	//签到任务
@@ -118,7 +118,7 @@ func SignTask() {
 		tmpBtn := &tb.ReplyMarkup{InlineKeyboard: inlineKeys}
 
 		se := u.MsId + " ( @" + chat.Username + " )"
-		access, newRefreshToken, err := outlook.MSGetToken(u.RefreshToken, u.ClientId, u.ClientSecret)
+		access, newRefreshToken, err := outlook.GetToken(u.RefreshToken, u.ClientId, u.ClientSecret)
 
 		if err != nil {
 			logger.Println(u.MsId+" ", err)
@@ -127,7 +127,7 @@ func SignTask() {
 			ErrorTimes[u.MsId]++
 			continue
 		}
-		if ok, err := outlook.OutLookGetMails(access); !ok {
+		if ok, err := outlook.GetOutLookMails(access); !ok {
 			logger.Println(u.MsId+" ", err)
 			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
 			ErrorTimes[u.MsId]++
@@ -136,7 +136,7 @@ func SignTask() {
 		}
 		u.Uptime = time.Now().Unix()
 		u.RefreshToken = newRefreshToken
-		if ok, err := db.UpdateData(u); !ok {
+		if ok, err := core.UpdateData(u); !ok {
 			logger.Println(u.MsId+" ", err)
 			bot.Send(chat, pre+err.Error(), tmpBtn)
 			SignErr = append(SignErr, se)
@@ -160,7 +160,7 @@ func SignTask() {
 		//错误上限账户清退
 		if ErrorTimes[u.MsId] == ErrMaxTimes {
 			logger.Println(u.MsId + " Error Limit")
-			if ok, err := db.DelData(u.MsId); !ok {
+			if ok, err := core.DelData(u.MsId); !ok {
 				logger.Println(err)
 			} else {
 				UnbindUser = append(UnbindUser, u.MsId+" ( @"+chat.Username+" )")

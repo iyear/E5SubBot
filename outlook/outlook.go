@@ -11,35 +11,46 @@ import (
 )
 
 const (
-	MsApiUrl    string = "https://login.microsoftonline.com"
-	MsGraUrl    string = "https://graph.microsoft.com"
+	msApiUrl    string = "https://login.microsoftonline.com"
+	msGraUrl    string = "https://graph.microsoft.com"
 	redirectUri string = "http://localhost/e5sub"
 	scope       string = "openid offline_access mail.read user.read"
 )
 
-func MSGetAuthUrl(cid string) string {
-	return "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=" + cid + "&response_type=code&redirect_uri=" + url.QueryEscape(redirectUri) + "&response_mode=query&scope=" + url.QueryEscape(scope)
+type msClient struct {
+	clientId     string
+	clientSecret string
 }
-func MSGetReAppUrl() string {
+
+func NewMSClient(clientId string, clientSecret string) *msClient {
+	return &msClient{
+		clientId:     clientId,
+		clientSecret: clientSecret,
+	}
+}
+func GetMSAuthUrl(clientId string) string {
+	return "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=" + clientId + "&response_type=code&redirect_uri=" + url.QueryEscape(redirectUri) + "&response_mode=query&scope=" + url.QueryEscape(scope)
+}
+func GetMSRegisterAppUrl() string {
 	ru := "https://developer.microsoft.com/en-us/graph/quick-start?appID=_appId_&appName=_appName_&redirectUrl=http://localhost:8000&platform=option-windowsuniversal"
 	deeplink := "/quickstart/graphIO?publicClientSupport=false&appName=e5sub&redirectUrl=http://localhost/e5sub&allowImplicitFlow=false&ru=" + url.QueryEscape(ru)
-	app_url := "https://apps.dev.microsoft.com/?deepLink=" + url.QueryEscape(deeplink)
-	return app_url
+	appUrl := "https://apps.dev.microsoft.com/?deepLink=" + url.QueryEscape(deeplink)
+	return appUrl
 }
 
 //return access_token and refresh_token
-func MSFirGetToken(code, cid, cse string) (access string, refresh string, Error error) {
+func (c *msClient) GetTokenWithCode(code string) (access string, refresh string, Error error) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
-	r.Form.Add("client_id", cid)
-	r.Form.Add("client_secret", cse)
+	r.Form.Add("client_id", c.clientId)
+	r.Form.Add("client_secret", c.clientSecret)
 	r.Form.Add("grant_type", "authorization_code")
 	r.Form.Add("scope", scope)
 	r.Form.Add("code", code)
 	r.Form.Add("redirect_uri", redirectUri)
 	body := strings.NewReader(r.Form.Encode())
-	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
+	req, err := http.NewRequest("POST", msApiUrl+"/common/oauth2/v2.0/token", body)
 	if err != nil {
 		logger.Println(err)
 		return "", "", err
@@ -62,19 +73,19 @@ func MSFirGetToken(code, cid, cse string) (access string, refresh string, Error 
 }
 
 //return access_token and new refresh token
-func MSGetToken(refreshtoken, cid, cse string) (access string, newRefreshToken string, Error error) {
+func (c *msClient) GetToken(refreshToken string) (access string, newRefreshToken string, Error error) {
 	var r http.Request
 	client := &http.Client{}
 	r.ParseForm()
-	r.Form.Add("client_id", cid)
-	r.Form.Add("client_secret", cse)
+	r.Form.Add("client_id", c.clientId)
+	r.Form.Add("client_secret", c.clientSecret)
 	r.Form.Add("grant_type", "refresh_token")
 	r.Form.Add("scope", scope)
-	r.Form.Add("refresh_token", refreshtoken)
+	r.Form.Add("refresh_token", refreshToken)
 	r.Form.Add("redirect_uri", redirectUri)
 	body := strings.NewReader(r.Form.Encode())
 	//fmt.Println(body)
-	req, err := http.NewRequest("POST", MsApiUrl+"/common/oauth2/v2.0/token", body)
+	req, err := http.NewRequest("POST", msApiUrl+"/common/oauth2/v2.0/token", body)
 	if err != nil {
 		logger.Println(err)
 		return "", "", err
@@ -99,9 +110,9 @@ func MSGetToken(refreshtoken, cid, cse string) (access string, newRefreshToken s
 }
 
 //Get User's Information
-func MSGetUserInfo(accesstoken string) (json string, Error error) {
+func GetUserInfo(accesstoken string) (json string, Error error) {
 	client := http.Client{}
-	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me", nil)
+	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me", nil)
 	if err != nil {
 		logger.Println(err)
 		return "", err
@@ -125,9 +136,9 @@ func MSGetUserInfo(accesstoken string) (json string, Error error) {
 	return "", errors.New(string(content))
 }
 
-func OutLookGetMails(accesstoken string) (bool, error) {
+func GetOutLookMails(accesstoken string) (bool, error) {
 	client := http.Client{}
-	req, err := http.NewRequest("GET", MsGraUrl+"/v1.0/me/messages", nil)
+	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me/messages", nil)
 	if err != nil {
 		logger.Println(err)
 		return false, err

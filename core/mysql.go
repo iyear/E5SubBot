@@ -1,31 +1,38 @@
-package db
+package core
 
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/gorm"
 	"main/logger"
+	"main/outlook"
 	"main/util"
+	"time"
 )
 
-type MSData struct {
-	TgId         int64
-	RefreshToken string
-	MsId         string
-	Uptime       int64
-	Alias        string
-	ClientId     string
-	ClientSecret string
-	Other        string
+var db *gorm.DB
+
+func InitDB() error {
+	var err error
+	db, err = gorm.Open("11", &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //update data by msId
-func UpdateData(u MSData) (bool, error) {
+func UpdateData(u Client) (bool, error) {
 	db, err := sql.Open(dbDriverName, dbPath)
 	if err != nil {
 		logger.Println(err)
 	}
 	defer db.Close()
-	sqlString := `UPDATE users set tg_id=?,refresh_token=?,uptime=?,alias=?,client_id=?,client_secret=?,other=?  where ms_id=?`
+	sqlString := `UPDATE Clients set tg_id=?,refresh_token=?,uptime=?,alias=?,client_id=?,client_secret=?,other=?  where ms_id=?`
 	stmt, err := db.Prepare(sqlString)
 	if err != nil {
 		return false, err
@@ -38,14 +45,14 @@ func UpdateData(u MSData) (bool, error) {
 }
 
 //add data
-func AddData(u MSData) (bool, error) {
+func AddData(u Client) (bool, error) {
 	db, err := sql.Open(dbDriverName, dbPath)
 	if err != nil {
 		logger.Println(err)
 	}
 	defer db.Close()
 	sqlString := `
-	INSERT INTO users (tg_id, refresh_token,ms_id, uptime,alias,client_id,client_secret,other)
+	INSERT INTO Clients (tg_id, refresh_token,ms_id, uptime,alias,client_id,client_secret,other)
 	VALUES (?,?,?,?,?,?,?,?)`
 	stmt, err := db.Prepare(sqlString)
 	if err != nil {
@@ -65,7 +72,7 @@ func DelData(msId string) (bool, error) {
 		logger.Println(err)
 	}
 	defer db.Close()
-	sqlString := `delete from users where ms_id=?`
+	sqlString := `delete from Clients where ms_id=?`
 	stmt, err := db.Prepare(sqlString)
 	if err != nil {
 		return false, err
@@ -80,9 +87,9 @@ func DelData(msId string) (bool, error) {
 	}
 	return true, nil
 }
-func QueryData(rows *sql.Rows) []MSData {
+func QueryData(rows *sql.Rows) []Client {
 
-	var result = make([]MSData, 0)
+	var result = make([]Client, 0)
 	defer rows.Close()
 	for rows.Next() {
 		var (
@@ -91,40 +98,40 @@ func QueryData(rows *sql.Rows) []MSData {
 		)
 		rows.Scan(&tgIdt, &refresht, &msidt, &uptimet, &aliast, &clientIdt, &clientSet, &othert)
 		//fmt.Println(string(tgNamet) + "=>" + uptimet.Format("2006-01-02 15:04:05"))
-		result = append(result, MSData{tgIdt, refresht, msidt, uptimet, aliast, clientIdt, clientSet, othert})
+		result = append(result, Client{tgIdt, refresht, msidt, uptimet, aliast, clientIdt, clientSet, othert})
 	}
 	return result
 }
-func QueryDataByMS(msId string) []MSData {
+func QueryDataByMS(msId string) []Client {
 	db, err := sql.Open(dbDriverName, dbPath)
 	if err != nil {
 		logger.Println(err)
 	}
 	defer db.Close()
-	rows, err := db.Query("select  * from users where ms_id = ?", msId)
+	rows, err := db.Query("select  * from Clients where ms_id = ?", msId)
 	util.CheckErr(err)
 	return QueryData(rows)
 }
 
-func QueryDataAll() []MSData {
+func QueryDataAll() []Client {
 	db, err := sql.Open(dbDriverName, dbPath)
 	if err != nil {
 		logger.Println(err)
 	}
 	defer db.Close()
-	rows, err := db.Query("select  * from users ")
+	rows, err := db.Query("select  * from Clients ")
 	util.CheckErr(err)
 	return QueryData(rows)
 }
 
 //query data by tg_id
-func QueryDataByTG(tgId int64) []MSData {
+func QueryDataByTG(tgId int64) []Client {
 	db, err := sql.Open(dbDriverName, dbPath)
 	if err != nil {
 		logger.Println(err)
 	}
 	defer db.Close()
-	rows, err := db.Query("select  * from users where tg_id = ?", tgId)
+	rows, err := db.Query("select  * from Clients where tg_id = ?", tgId)
 	util.CheckErr(err)
 	return QueryData(rows)
 }
@@ -135,7 +142,7 @@ func CreateTB() (bool, error) {
 	}
 	defer db.Close()
 	sqltable := `
-    create table if not exists users
+    create table if not exists Clients
 	(
 	tg_id INTEGER,
 	refresh_token TEXT,
