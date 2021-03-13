@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"main/core"
 	"main/logger"
-	"main/outlook"
 	"main/util"
 	"os"
 	"path/filepath"
@@ -25,10 +24,8 @@ const (
 	/my 查看已绑定账户信息
 	/bind  绑定新账户
 	/unbind 解绑账户
-	/export 导出账户信息(JSON格式)
+	/export 导出账户信息(JSON)
 	/help 帮助
-	/task 手动执行一次任务(管理员)
-	/log 获取最近日志文件(管理员)
 	源码及使用方法：https://github.com/iyear/E5SubBot
 `
 )
@@ -110,7 +107,7 @@ func bMyInlineBtn(c *tb.Callback) {
 func bBind1(m *tb.Message) {
 	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Bind")
 	logger.Println("ReApp: " + strconv.FormatInt(m.Chat.ID, 10))
-	bot.Send(m.Chat, "应用注册： [点击直达]("+outlook.GetMSRegisterAppUrl()+")", tb.ModeMarkdown)
+	bot.Send(m.Chat, "应用注册： [点击直达]("+core.GetMSRegisterAppUrl()+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复client_id+空格+client_secret", &tb.ReplyMarkup{ForceReply: true})
 	if err != nil {
 		logger.Println(err)
@@ -131,7 +128,7 @@ func bBind2(m *tb.Message) {
 	logger.Println("client_id: " + tmp[0] + " client_secret: " + tmp[1])
 	cid := tmp[0]
 	cse := tmp[1]
-	bot.Send(m.Chat, "授权账户： [点击直达]("+outlook.GetMSAuthUrl(cid)+")", tb.ModeMarkdown)
+	bot.Send(m.Chat, "授权账户： [点击直达]("+core.GetMSAuthUrl(cid)+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复http://localhost/…… + 空格 + 别名(用于管理)", &tb.ReplyMarkup{ForceReply: true})
 	if err != nil {
 		logger.Println(err)
@@ -194,7 +191,7 @@ func bExport(m *tb.Message) {
 		ms.Other = u.Other
 		MsMini = append(MsMini, ms)
 	}
-	//MarshalIndent是为json+美化,/t表缩进
+	//MarshalIndent json美化,/t缩进
 	export, err := json.MarshalIndent(MsMini, "", "\t")
 	if err != nil {
 		logger.Println(err)
@@ -305,7 +302,6 @@ func bLogsInlineBtn(c *tb.Callback) {
 	logfile := &tb.Document{File: tb.FromDisk(bLogBasePath + c.Data), FileName: c.Data, MIME: "text/plain"}
 	_, err := bot.Send(c.Message.Chat, logfile)
 	if err != nil {
-		logger.Println(err)
 		return
 	}
 	bot.Respond(c)

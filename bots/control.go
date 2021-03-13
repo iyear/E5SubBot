@@ -8,7 +8,6 @@ import (
 	tb "gopkg.in/tucnak/telebot.v2"
 	"main/core"
 	"main/logger"
-	"main/outlook"
 	"main/util"
 	"strconv"
 	"strings"
@@ -27,43 +26,36 @@ func BindUser(m *tb.Message, cid, cse string) error {
 	}
 	logger.Println("Alias: " + tmp[1])
 	Alias := tmp[1]
+	client := core.NewClient(cid, cse)
 	code := util.GetURLValue(tmp[0], "code")
 	//fmt.Println(code)
-	access, refresh, err := MSFirGetToken(code, cid, cse)
+	err := client.GetTokenWithCode(code)
 	if err != nil {
-		logger.Println("%d Bind error:GetRefreshToken %s \n", m.Chat.ID, err.Error())
 		return err
 	}
-
-	//token has gotten
 	bot.Send(m.Chat, "Token获取成功!")
-	info, err := outlook.GetUserInfo(access)
+	info, err := client.GetUserInfo()
 	//fmt.Println("TgId:%d Refresh Token: %s\n", m.Chat.ID, refresh)
 	if err != nil {
-		logger.Println("%d Bind error:Getinfo %s \n", m.Chat.ID, err.Error())
 		return err
 	}
-
 	var u core.Client
 	u.TgId = m.Chat.ID
-	u.RefreshToken = refresh
+	u.RefreshToken = client.RefreshToken
 	//TG的Data传递最高64bytes,一些MsId超过了报错BUTTON_DATA_INVALID (0)，采取md5
 	u.MsId = util.Get16MD5Encode(gjson.Get(info, "id").String())
 	u.Uptime = time.Now().Unix()
-	logger.Println(u.Uptime)
 	u.Alias = Alias
 	u.ClientId = cid
 	u.ClientSecret = cse
 	u.Other = ""
 	//MS User Is Exist
 	if MSAppIsExist(u.TgId, u.ClientId) {
-		logger.Println("%d Bind error:MSUserHasExisted\n", m.Chat.ID)
 		return errors.New("该应用已经绑定过了，无需重复绑定")
 	}
 	//MS information has gotten
 	bot.Send(m.Chat, "MS_ID(MD5)： "+u.MsId+"\nuserPrincipalName： "+gjson.Get(info, "userPrincipalName").String()+"\ndisplayName： "+gjson.Get(info, "displayName").String()+"\n")
 	if ok, err := core.AddData(u); !ok {
-		logger.Println("%d Bind error: %s\n", m.Chat.ID, err)
 		return err
 	}
 	logger.Println("%d Bind Successfully!\n", m.Chat.ID)
@@ -118,16 +110,8 @@ func SignTask() {
 		tmpBtn := &tb.ReplyMarkup{InlineKeyboard: inlineKeys}
 
 		se := u.MsId + " ( @" + chat.Username + " )"
-		access, newRefreshToken, err := outlook.GetToken(u.RefreshToken, u.ClientId, u.ClientSecret)
-
-		if err != nil {
-			logger.Println(u.MsId+" ", err)
-			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
-			SignErr = append(SignErr, se)
-			ErrorTimes[u.MsId]++
-			continue
-		}
-		if ok, err := outlook.GetOutLookMails(access); !ok {
+		client := core.NewClient(u.ClientId, u.ClientSecret)
+		if err := client.GetOutlookMails(); err != nil {
 			logger.Println(u.MsId+" ", err)
 			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
 			ErrorTimes[u.MsId]++
