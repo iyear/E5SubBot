@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"github.com/iyear/E5SubBot/model"
 	"github.com/iyear/E5SubBot/util"
-	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
 	tb "gopkg.in/tucnak/telebot.v2"
-	"strconv"
 	"strings"
 )
 
@@ -72,13 +70,4 @@ func MSAppIsExist(TgId int64, ClientId string) bool {
 		Where("tg_id = ? AND client_id = ?", TgId, ClientId).
 		First(&model.Client{})
 	return util.IF(result.RowsAffected == 0, false, true).(bool)
-}
-func GetAdmins() []int64 {
-	var result []int64
-	admins := strings.Split(viper.GetString("admin"), ",")
-	for _, v := range admins {
-		id, _ := strconv.ParseInt(v, 10, 64)
-		result = append(result, id)
-	}
-	return result
 }
