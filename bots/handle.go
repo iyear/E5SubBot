@@ -3,12 +3,12 @@ package bots
 import (
 	"encoding/json"
 	"github.com/fsnotify/fsnotify"
+	"github.com/iyear/E5SubBot/core"
+	"github.com/iyear/E5SubBot/util"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"io/ioutil"
-	"main/core"
-	"main/logger"
-	"main/util"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -82,7 +82,6 @@ func bStart(m *tb.Message) {
 }
 
 func bMy(m *tb.Message) {
-	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Manager Users")
 	data := core.QueryDataByTG(m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
@@ -97,7 +96,6 @@ func bMy(m *tb.Message) {
 	bot.Send(m.Chat, "选择一个账户查看具体信息\n\n绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
 }
 func bMyInlineBtn(c *tb.Callback) {
-	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Get User Info")
 	r := core.QueryDataByMS(c.Data)
 	u := r[0]
 	bot.Send(c.Message.Chat, "信息\n别名："+u.Alias+"\nMS_ID(MD5): "+u.MsId+"\nclient_id: "+u.ClientId+"\nclient_secret: "+u.ClientSecret+"\n最近更新时间: "+time.Unix(u.Uptime, 0).Format("2006-01-02 15:04:05"))
@@ -105,33 +103,22 @@ func bMyInlineBtn(c *tb.Callback) {
 }
 
 func bBind1(m *tb.Message) {
-	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Bind")
-	logger.Println("ReApp: " + strconv.FormatInt(m.Chat.ID, 10))
 	bot.Send(m.Chat, "应用注册： [点击直达]("+core.GetMSRegisterAppUrl()+")", tb.ModeMarkdown)
-	_, err := bot.Send(m.Chat, "请回复client_id+空格+client_secret", &tb.ReplyMarkup{ForceReply: true})
-	if err != nil {
-		logger.Println(err)
-		return
-	}
+	bot.Send(m.Chat, "请回复client_id+空格+client_secret", &tb.ReplyMarkup{ForceReply: true})
 	UserStatus[m.Chat.ID] = USBind1
 	UserCid[m.Chat.ID] = m.Text
 }
 func bBind2(m *tb.Message) {
-	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Bind2")
-	logger.Println("Auth: " + strconv.FormatInt(m.Chat.ID, 10))
 	tmp := strings.Split(m.Text, " ")
 	if len(tmp) != 2 {
-		logger.Println("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
 		bot.Send(m.Chat, "错误的格式")
 		return
 	}
-	logger.Println("client_id: " + tmp[0] + " client_secret: " + tmp[1])
 	cid := tmp[0]
 	cse := tmp[1]
 	bot.Send(m.Chat, "授权账户： [点击直达]("+core.GetMSAuthUrl(cid)+")", tb.ModeMarkdown)
 	_, err := bot.Send(m.Chat, "请回复http://localhost/…… + 空格 + 别名(用于管理)", &tb.ReplyMarkup{ForceReply: true})
 	if err != nil {
-		logger.Println(err)
 		return
 	}
 	UserStatus[m.Chat.ID] = USBind2
@@ -140,7 +127,6 @@ func bBind2(m *tb.Message) {
 }
 
 func bUnBind(m *tb.Message) {
-	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Unbind")
 	data := core.QueryDataByTG(m.Chat.ID)
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
@@ -155,20 +141,17 @@ func bUnBind(m *tb.Message) {
 	bot.Send(m.Chat, "选择一个账户将其解绑\n\n当前绑定数: "+strconv.Itoa(GetBindNum(m.Chat.ID))+"/"+strconv.Itoa(BindMaxNum), &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
 }
 func bUnBindInlineBtn(c *tb.Callback) {
-	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Unbind: " + c.Data)
 	r := core.QueryDataByMS(c.Data)
 	u := r[0]
-	if ok, _ := core.DelData(u.MsId); !ok {
-		logger.Println(u.MsId + " UnBind ERROR")
+	if ok, err := core.DelData(u.MsId); !ok {
+		zap.S().Errorw("failed to delete db data","error",err,"ms_id",u.MsId)
 		bot.Send(c.Message.Chat, "解绑失败!")
 		return
 	}
-	logger.Println(u.MsId + " UnBind Success")
 	bot.Send(c.Message.Chat, "解绑成功!")
 	bot.Respond(c)
 }
 func bExport(m *tb.Message) {
-	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Export")
 	type MsMiniData struct {
 		Alias        string
 		ClientId     string
@@ -194,28 +177,22 @@ func bExport(m *tb.Message) {
 	//MarshalIndent json美化,/t缩进
 	export, err := json.MarshalIndent(MsMini, "", "\t")
 	if err != nil {
-		logger.Println(err)
+		zap.S().Errorw("failed to marshal json","error",err)
 		bot.Send(m.Chat, "获取JSON失败~\n"+err.Error())
 		return
 	}
 	//fmt.Println(string(export))
 	fileName := "./" + strconv.FormatInt(m.Chat.ID, 10) + "_export_tmp.json"
 	if err = ioutil.WriteFile(fileName, export, 0644); err != nil {
-		logger.Println(err)
+		zap.S().Errorw("failed to write file","error",err)
 		bot.Send(m.Chat, "写入临时文件失败~\n"+err.Error())
 		return
 	}
 	exportFile := &tb.Document{File: tb.FromDisk(fileName), FileName: strconv.FormatInt(m.Chat.ID, 10) + ".json", MIME: "text/plain"}
-	_, err = bot.Send(m.Chat, exportFile)
-	if err != nil {
-		logger.Println(err)
-		return
-	}
+	bot.Send(m.Chat, exportFile)
 	//不遗留本地文件
-	if exportFile.InCloud() == true && os.Remove(fileName) == nil {
-		logger.Println(fileName + " Has Removed")
-	} else {
-		logger.Println(fileName + " Removed ERROR")
+	if exportFile.InCloud() != true || os.Remove(fileName) != nil {
+		zap.S().Errorw("failed to export files")
 	}
 }
 func bHelp(m *tb.Message) {
@@ -258,7 +235,6 @@ func bOnText(m *tb.Message) {
 	}
 }
 func bTask(m *tb.Message) {
-	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start SignTask")
 	for _, a := range admin {
 		if a == m.Chat.ID {
 			SignTask()
@@ -268,7 +244,6 @@ func bTask(m *tb.Message) {
 	bot.Send(m.Chat, "您没有权限执行此操作~")
 }
 func bLog(m *tb.Message) {
-	logger.Println(strconv.FormatInt(m.Chat.ID, 10) + " Start Get Logs")
 	flag := 0
 	for _, a := range admin {
 		if a == m.Chat.ID {
@@ -290,13 +265,9 @@ func bLog(m *tb.Message) {
 		bot.Handle(&inlineBtn, bLogsInlineBtn)
 		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
 	}
-	_, err := bot.Send(m.Chat, "选择一个日志", &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
-	if err != nil {
-		logger.Println(err)
-	}
+	bot.Send(m.Chat, "选择一个日志", &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
 }
 func bLogsInlineBtn(c *tb.Callback) {
-	logger.Println(strconv.FormatInt(c.Message.Chat.ID, 10) + " Get Logs: " + c.Data)
 	//fmt.Println(c.Data)
 	//logger.Println(bLogBasePath + c.Data + ".log")
 	logfile := &tb.Document{File: tb.FromDisk(bLogBasePath + c.Data), FileName: c.Data, MIME: "text/plain"}

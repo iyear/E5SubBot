@@ -156,5 +156,5 @@ func (c *Client) GetOutlookMails() error {
 	if gjson.Get(string(content), "@odata\\.context").String() != "" {
 		return nil
 	}
-	return errors.New(string(content))
+	return errors.New(gjson.Get(string(content), "error").String())
 }

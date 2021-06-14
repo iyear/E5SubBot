@@ -3,12 +3,12 @@ package bots
 import (
 	"errors"
 	"fmt"
+	"github.com/iyear/E5SubBot/core"
+	"github.com/iyear/E5SubBot/util"
 	"github.com/spf13/viper"
 	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
-	"main/core"
-	"main/logger"
-	"main/util"
 	"strconv"
 	"strings"
 	"time"
@@ -16,15 +16,12 @@ import (
 
 var SignOk map[int64]int
 
-//If Successfully return "",else return error information
+// BindUser If Successfully return "",else return error information
 func BindUser(m *tb.Message, cid, cse string) error {
-	logger.Println("%d Begin Bind\n", m.Chat.ID)
 	tmp := strings.Split(m.Text, " ")
 	if len(tmp) != 2 {
-		logger.Println("%d Bind error:Wrong Bind Format\n", m.Chat.ID)
-		return errors.New("绑定格式错误")
+		return errors.New("wrong format")
 	}
-	logger.Println("Alias: " + tmp[1])
 	Alias := tmp[1]
 	client := core.NewClient(cid, cse)
 	code := util.GetURLValue(tmp[0], "code")
@@ -58,17 +55,16 @@ func BindUser(m *tb.Message, cid, cse string) error {
 	if ok, err := core.AddData(u); !ok {
 		return err
 	}
-	logger.Println("%d Bind Successfully!\n", m.Chat.ID)
 	return nil
 }
 
-//get bind num
+// GetBindNum get bind num
 func GetBindNum(TgId int64) int {
 	data := core.QueryDataByTG(TgId)
 	return len(data)
 }
 
-//return true => exist
+// MSAppIsExist return true => exist
 func MSAppIsExist(TgId int64, ClientId string) bool {
 	data := core.QueryDataByTG(TgId)
 	var res core.Client
@@ -80,7 +76,6 @@ func MSAppIsExist(TgId int64, ClientId string) bool {
 	return false
 }
 
-//SignTask
 func SignTask() {
 	var (
 		SignOk      map[int64]int
@@ -99,7 +94,7 @@ func SignTask() {
 		pre := "您的账户: " + u.Alias + "\n在任务执行时出现了错误!\n错误:"
 		chat, err := bot.ChatByID(strconv.FormatInt(u.TgId, 10))
 		if err != nil {
-			logger.Println(err)
+			zap.S().Errorw("wrong chat id","error",err,"tg_id",u.TgId)
 			continue
 		}
 		//生成解绑按钮
@@ -112,8 +107,8 @@ func SignTask() {
 		se := u.MsId + " ( @" + chat.Username + " )"
 		client := core.NewClient(u.ClientId, u.ClientSecret)
 		if err := client.GetOutlookMails(); err != nil {
-			logger.Println(u.MsId+" ", err)
-			bot.Send(chat, pre+gjson.Get(err.Error(), "error").String(), tmpBtn)
+			zap.S().Errorw("failed to get outlook mails","error",err,"ms_id",u.MsId)
+			bot.Send(chat, pre+err.Error(), tmpBtn)
 			ErrorTimes[u.MsId]++
 			SignErr = append(SignErr, se)
 			continue
@@ -121,7 +116,7 @@ func SignTask() {
 		u.Uptime = time.Now().Unix()
 		u.RefreshToken = newRefreshToken
 		if ok, err := core.UpdateData(u); !ok {
-			logger.Println(u.MsId+" ", err)
+			zap.S().Errorw("failed to update db data","error",err,"ms_id",u.MsId)
 			bot.Send(chat, pre+err.Error(), tmpBtn)
 			SignErr = append(SignErr, se)
 			ErrorTimes[u.MsId]++
@@ -138,29 +133,23 @@ func SignTask() {
 	for _, u := range data {
 		chat, err := bot.ChatByID(strconv.FormatInt(u.TgId, 10))
 		if err != nil {
-			logger.Println("Send Result ERROR: ", err)
+			zap.S().Errorw("failed to get chat","error",err,"tg_id",u.TgId)
 			continue
 		}
 		//错误上限账户清退
 		if ErrorTimes[u.MsId] == ErrMaxTimes {
-			logger.Println(u.MsId + " Error Limit")
+			zap.S().Errorw("binding max num limit","ms_id",u.MsId)
 			if ok, err := core.DelData(u.MsId); !ok {
-				logger.Println(err)
+				zap.S().Errorw("failed to delete db data","error",err,"ms_id",u.MsId)
 			} else {
 				UnbindUser = append(UnbindUser, u.MsId+" ( @"+chat.Username+" )")
-				_, err = bot.Send(chat, "您的账户因达到错误上限而被自动解绑\n后会有期!\n\n别名: "+u.Alias+"\nclient_id: "+u.ClientId+"\nclient_secret: "+u.ClientSecret)
-				if err != nil {
-					logger.Println(err)
-				}
+				bot.Send(chat, "您的账户因达到错误上限而被自动解绑\n后会有期!\n\n别名: "+u.Alias+"\nclient_id: "+u.ClientId+"\nclient_secret: "+u.ClientSecret)
 			}
 
 		}
 		if !isSend[u.TgId] {
 			//静默发送，过多消息很烦
-			_, err = bot.Send(chat, "任务反馈\n时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.TgId])+"/"+strconv.Itoa(GetBindNum(u.TgId)), &tb.SendOptions{DisableNotification: true})
-			if err != nil {
-				logger.Println(err)
-			}
+			bot.Send(chat, "任务反馈\n时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(SignOk[u.TgId])+"/"+strconv.Itoa(GetBindNum(u.TgId)), &tb.SendOptions{DisableNotification: true})
 			isSend[u.TgId] = true
 		}
 	}
@@ -176,7 +165,7 @@ func SignTask() {
 	for _, a := range admin {
 		chat, err := bot.ChatByID(strconv.FormatInt(a, 10))
 		if err != nil {
-			logger.Println(err)
+			zap.S().Errorw("failed to get chat","error",err,"tg_id",a)
 			continue
 		}
 		bot.Send(chat, "任务反馈(管理员)\n完成时间: "+time.Now().Format("2006-01-02 15:04:05")+"\n结果: "+strconv.Itoa(signOk)+"/"+strconv.Itoa(num)+"\n错误账户:\n"+ErrUserStr+"\n清退账户:\n"+UnbindUserStr)

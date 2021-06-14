@@ -1,6 +1,6 @@
 package main
 
-import "main/bots"
+import "github.com/iyear/E5SubBot/bots"
 
 func main() {
 	bots.BotStart()

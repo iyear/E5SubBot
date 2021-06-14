@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"golang.org/x/net/proxy"
 	tb "gopkg.in/tucnak/telebot.v2"
-	"main/logger"
 	"net/http"
 	"strconv"
 	"strings"
@@ -38,12 +38,12 @@ var dbPath string
 func BotStart() {
 	MakeHandle()
 	TaskLaunch()
-	logger.Println("Bot Start")
+	fmt.Println("Bot Start")
 	fmt.Println("------------")
 	bot.Start()
 }
 func MakeHandle() {
-	logger.Println("Make Handle……")
+	fmt.Println("Make Handlers……")
 	//所有用户
 	bot.Handle("/start", bStart)
 	bot.Handle("/my", bMy)
@@ -63,19 +63,19 @@ func TaskLaunch() {
 	//log分为每天
 	//task.AddFunc(" 0 0 * * *", InitLogger)
 	//  */1 * * * *    1 */3 * * *
-	logger.Println("Cron Task Start……")
+	fmt.Println("Cron Task Start……")
 	task.Start()
 }
 func init() {
 	fmt.Println(logo)
 
 	//read config
-	logger.Println("Read Config……")
+	fmt.Println("Read Config……")
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
 	if err != nil {
-		logger.Println(err)
+		zap.S().Errorw("failed to read config","error",err)
 	}
 	host := viper.GetString("mysql.host")
 	user := viper.GetString("mysql.user")
@@ -86,17 +86,15 @@ func init() {
 	//fmt.Println(path)
 	db, err := sql.Open(dbDriverName, dbPath)
 	if err != nil {
-		logger.Println(err)
+		zap.S().Errorw("failed to connect db","error",err,"path",dbPath)
 	}
-	logger.Println("Connect MySQL Success!")
+	fmt.Println("Connect MySQL Success!")
 	if ok, err := CreateTB(); !ok {
-		logger.Println(err)
+		zap.S().Errorw("failed to create table","error",err,"path",dbPath)
 	}
 	defer db.Close()
 	BotToken = viper.GetString("bot_token")
 	Socks5 = viper.GetString("socks5")
-	//set bot
-	logger.Println("Bot Settings……")
 	Poller := &tb.LongPoller{Timeout: 15 * time.Second}
 	spamProtected := tb.NewMiddlewarePoller(Poller, func(upd *tb.Update) bool {
 		if upd.Message == nil {
@@ -113,10 +111,10 @@ func init() {
 	}
 	//set socks5
 	if Socks5 != "" {
-		logger.Println("Proxy:" + Socks5)
+		fmt.Println("Proxy:" + Socks5)
 		dialer, err := proxy.SOCKS5("tcp", Socks5, nil, proxy.Direct)
 		if err != nil {
-			logger.Println(err)
+			zap.S().Errorw("failed to make dialer","error",err,"socks5",Socks5)
 		}
 		httpTransport := &http.Transport{}
 		httpClient := &http.Client{Transport: httpTransport}
@@ -126,7 +124,7 @@ func init() {
 	//create bot
 	bot, err = tb.NewBot(botsettings)
 	if err != nil {
-		logger.Println(err)
+		zap.S().Errorw("failed to create bot","error",err)
 	}
-	logger.Println("Bot: " + strconv.Itoa(bot.Me.ID) + " " + bot.Me.Username)
+	fmt.Println("Bot: " + strconv.Itoa(bot.Me.ID) + " " + bot.Me.Username)
 }
