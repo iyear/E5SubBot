@@ -1,4 +1,4 @@
-package core
+package model
 
 import (
 	"github.com/pkg/errors"
@@ -10,14 +10,14 @@ import (
 )
 
 type Client struct {
-	TgId         int64  `gorm:"column:tg_id"`
-	RefreshToken string `gorm:"column:refresh_token"`
-	MsId         string `gorm:"column:ms_id"`
-	Uptime       int64  `gorm:"column:uptime"`
-	Alias        string `gorm:"column:alias"`
-	ClientId     string `gorm:"column:client_id"`
-	ClientSecret string `gorm:"column:client_secret"`
-	Other        string `gorm:"column:other"`
+	TgId         int64  `gorm:"unique;not null"`
+	RefreshToken string `gorm:"not null"`
+	MsId         string `gorm:"unique;primaryKey;not null"`
+	Uptime       int64  `gorm:"autoUpdateTime;not null"`
+	Alias        string `gorm:"not null"`
+	ClientId     string `gorm:"not null"`
+	ClientSecret string `gorm:"not null"`
+	Other        string
 }
 
 const (
