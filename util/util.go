@@ -3,9 +3,7 @@ package util
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/url"
 	"os"
 	"time"
@@ -17,15 +15,6 @@ func Min(x, y int) int {
 		return x
 	}
 	return y
-}
-func CheckErr(err error) bool {
-	if err != nil {
-		log.Println(err)
-		fmt.Println("ERROR")
-		panic(err)
-		return false
-	}
-	return true
 }
 func PathExists(path string) bool {
 	_, err := os.Stat(path)
