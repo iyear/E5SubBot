@@ -38,8 +38,16 @@ var client = &http.Client{}
 func init() {
 	client.Timeout = 10 * time.Second
 	tp := http.DefaultTransport.(*http.Transport).Clone()
-	tp.MaxIdleConns = 100
-	tp.MaxIdleConnsPerHost = 100
+	//TODO
+	//https://gocn.vip/topics/11970
+	//DefaultMaxIdleConnsPerHost 设置的太小就会导致一个问题,
+	//在大量请求的情况下去访问特定的 host 的时候,长连接会退化成短链接.
+	tp.MaxIdleConns = 0
+	tp.MaxIdleConnsPerHost = 50
+	//to avoid "context deadline exceeded (Client.Timeout exceeded while awaiting headers)"
+	//https://cloud.tencent.com/developer/article/1529840
+	tp.IdleConnTimeout = 5 * time.Second
+
 	client.Transport = tp
 }
 func NewClient(clientId string, clientSecret string) *Client {
@@ -73,8 +81,6 @@ func (c *Client) GetTokenWithCode(code string) (error error) {
 	if err != nil {
 		return err
 	}
-	//prevents the connection from being re-used
-	////https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
