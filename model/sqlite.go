@@ -1,6 +1,7 @@
 package model
 
 import (
+	"go.uber.org/zap"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"time"
@@ -8,16 +9,15 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() error {
+func InitDB() {
 	var err error
 	DB, err = gorm.Open(sqlite.Open("data.db"), &gorm.Config{
 		NowFunc: func() time.Time {
-			return time.Now().UTC()
+			return time.Now()
 		},
 	})
 	if err != nil {
-		return err
+		zap.S().Errorw("failed to open db", "error", err)
 	}
 	DB.AutoMigrate(&Client{})
-	return nil
 }
