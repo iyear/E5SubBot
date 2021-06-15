@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
@@ -10,7 +11,7 @@ import (
 )
 
 type Client struct {
-	TgId         int64  `gorm:"unique;not null"`
+	TgId         int64  `gorm:"not null"`
 	RefreshToken string `gorm:"not null"`
 	MsId         string `gorm:"unique;primaryKey;not null"`
 	Uptime       int64  `gorm:"autoUpdateTime;not null"`
@@ -43,7 +44,7 @@ func GetMSRegisterAppUrl() string {
 	return appUrl
 }
 
-//return access_token and refresh_token
+// GetTokenWithCode return access_token and refresh_token
 func (c *Client) GetTokenWithCode(code string) (error error) {
 	var r http.Request
 	client := &http.Client{}
@@ -59,6 +60,11 @@ func (c *Client) GetTokenWithCode(code string) (error error) {
 	if err != nil {
 		return err
 	}
+
+	//prevents the connection from being re-used
+	////https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi
+	req.Close = true
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -92,6 +98,7 @@ func (c *Client) getToken() (access string) {
 	if err != nil {
 		return ""
 	}
+	req.Close = true
 	resp, err := client.Do(req)
 	if err != nil {
 		return ""
@@ -101,8 +108,6 @@ func (c *Client) getToken() (access string) {
 	if err != nil {
 		return ""
 	}
-	//fmt.Println(string(content))
-	//fmt.Println(gjson.Get(string(content), "access_token").String())
 	if gjson.Get(string(content), "token_type").String() == "Bearer" {
 		c.RefreshToken = gjson.Get(string(content), "refresh_token").String()
 		return gjson.Get(string(content), "access_token").String()
@@ -110,13 +115,16 @@ func (c *Client) getToken() (access string) {
 	return ""
 }
 
-//Get User's Information
+// GetUserInfo Get User's Information
 func (c *Client) GetUserInfo() (json string, error error) {
 	client := http.Client{}
 	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me", nil)
 	if err != nil {
 		return "", err
 	}
+
+	req.Close = true
+
 	req.Header.Set("Authorization", c.getToken())
 	resp, err := client.Do(req)
 	if err != nil {
@@ -124,6 +132,7 @@ func (c *Client) GetUserInfo() (json string, error error) {
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(content))
 	if err != nil {
 		return "", err
 	}
@@ -137,10 +146,10 @@ func (c *Client) GetUserInfo() (json string, error error) {
 func (c *Client) GetOutlookMails() error {
 	client := http.Client{}
 	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me/messages", nil)
-
 	if err != nil {
 		return err
 	}
+	req.Close = true
 	req.Header.Set("Authorization", c.getToken())
 	resp, err := client.Do(req)
 	if err != nil {
