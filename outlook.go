@@ -43,6 +43,7 @@ func MSFirGetToken(code, cid, cse string) (access string, refresh string, Error 
 		logger.Println(err)
 		return "", "", err
 	}
+	req.Close = true
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Println(err)
@@ -78,6 +79,7 @@ func MSGetToken(refreshtoken, cid, cse string) (access string, newRefreshToken s
 		logger.Println(err)
 		return "", "", err
 	}
+	req.Close = true
 	resp, err := client.Do(req)
 	if err != nil {
 		logger.Println(err)
@@ -105,6 +107,7 @@ func MSGetUserInfo(accesstoken string) (json string, Error error) {
 		logger.Println(err)
 		return "", err
 	}
+	req.Close = true
 	req.Header.Set("Authorization", accesstoken)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -131,6 +134,7 @@ func OutLookGetMails(accesstoken string) (bool, error) {
 		logger.Println(err)
 		return false, err
 	}
+	req.Close = true
 	req.Header.Set("Authorization", accesstoken)
 	resp, err := client.Do(req)
 	if err != nil {
