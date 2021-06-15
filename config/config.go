@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"strconv"
 	"strings"
 )
@@ -22,7 +23,8 @@ const (
 )
 
 var (
-	ErrorTimes  map[string]int //错误次数
+	BotToken    string
+	Socks5      string
 	BindMaxNum  int
 	ErrMaxTimes int
 	Notice      string
@@ -34,8 +36,11 @@ func InitConfig() {
 	viper.AddConfigPath(".")
 	err := viper.ReadInConfig()
 	if err != nil {
-
+		zap.S().Errorw("failed to read config", "error", err)
 	}
+	BotToken = viper.GetString("bot_token")
+	Socks5 = viper.GetString("socks5")
+
 	viper.SetDefault("errlimit", 5)
 	viper.SetDefault("bindmax", 5)
 

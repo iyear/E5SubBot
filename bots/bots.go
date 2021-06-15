@@ -2,6 +2,9 @@ package bots
 
 import (
 	"fmt"
+	"github.com/iyear/E5SubBot/config"
+	"github.com/iyear/E5SubBot/logger"
+	"github.com/iyear/E5SubBot/model"
 	"github.com/iyear/E5SubBot/task"
 	"github.com/robfig/cron/v3"
 	"github.com/spf13/viper"
@@ -14,9 +17,7 @@ import (
 )
 
 var (
-	BotToken string
-	Socks5   string
-	bot      *tb.Bot
+	bot *tb.Bot
 )
 
 const (
@@ -31,6 +32,48 @@ const (
 )
 
 func BotStart() {
+	var err error
+	fmt.Println(logo)
+	//read config
+	config.InitConfig()
+	//Init Logger
+	logger.InitLogger()
+	//InitDB
+	model.InitDB()
+	Poller := &tb.LongPoller{Timeout: 15 * time.Second}
+	spamPoller := tb.NewMiddlewarePoller(Poller, func(upd *tb.Update) bool {
+		if upd.Message == nil {
+			return true
+		}
+		if !upd.Message.Private() {
+			return false
+		}
+		return true
+	})
+	botSetting := tb.Settings{
+		Token:  config.BotToken,
+		Poller: spamPoller,
+	}
+	//set socks5
+	if config.Socks5 != "" {
+		fmt.Println("Proxy:" + config.Socks5)
+		dialer, err := proxy.SOCKS5("tcp", config.Socks5, nil, proxy.Direct)
+		if err != nil {
+			zap.S().Errorw("failed to make dialer", "error", err, "socks5", config.Socks5)
+		}
+		httpTransport := &http.Transport{}
+		httpClient := &http.Client{Transport: httpTransport}
+		httpTransport.Dial = dialer.Dial
+		botSetting.Client = httpClient
+	}
+	//create bot
+	bot, err = tb.NewBot(botSetting)
+	if err != nil {
+		zap.S().Errorw("failed to create bot", "error", err)
+		return
+	}
+	fmt.Println("Bot: " + strconv.Itoa(bot.Me.ID) + " " + bot.Me.Username)
+
 	MakeHandle()
 	TaskLaunch()
 	fmt.Println("Bot Start")
@@ -56,50 +99,4 @@ func TaskLaunch() {
 	c.AddFunc(viper.GetString("cron"), task.SignTask)
 	fmt.Println("Cron Task Start……")
 	c.Start()
-}
-func init() {
-	fmt.Println(logo)
-
-	//read config
-	fmt.Println("Read Config……")
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
-	if err != nil {
-		zap.S().Errorw("failed to read config", "error", err)
-	}
-	BotToken = viper.GetString("bot_token")
-	Socks5 = viper.GetString("socks5")
-	Poller := &tb.LongPoller{Timeout: 15 * time.Second}
-	spamPoller := tb.NewMiddlewarePoller(Poller, func(upd *tb.Update) bool {
-		if upd.Message == nil {
-			return true
-		}
-		if !upd.Message.Private() {
-			return false
-		}
-		return true
-	})
-	botSetting := tb.Settings{
-		Token:  BotToken,
-		Poller: spamPoller,
-	}
-	//set socks5
-	if Socks5 != "" {
-		fmt.Println("Proxy:" + Socks5)
-		dialer, err := proxy.SOCKS5("tcp", Socks5, nil, proxy.Direct)
-		if err != nil {
-			zap.S().Errorw("failed to make dialer", "error", err, "socks5", Socks5)
-		}
-		httpTransport := &http.Transport{}
-		httpClient := &http.Client{Transport: httpTransport}
-		httpTransport.Dial = dialer.Dial
-		botSetting.Client = httpClient
-	}
-	//create bot
-	bot, err = tb.NewBot(botSetting)
-	if err != nil {
-		zap.S().Errorw("failed to create bot", "error", err)
-	}
-	fmt.Println("Bot: " + strconv.Itoa(bot.Me.ID) + " " + bot.Me.Username)
 }
