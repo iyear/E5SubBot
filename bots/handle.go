@@ -45,9 +45,9 @@ func bMy(m *tb.Message) {
 	var inlineKeys [][]tb.InlineButton
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
-			Unique: "my" + u.MsId,
+			Unique: "my" + strconv.Itoa(u.ID),
 			Text:   u.Alias,
-			Data:   u.MsId,
+			Data:   strconv.Itoa(u.ID),
 		}
 		bot.Handle(&inlineBtn, bMyInlineBtn)
 		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
@@ -59,7 +59,7 @@ func bMy(m *tb.Message) {
 }
 func bMyInlineBtn(c *tb.Callback) {
 	var u *model.Client
-	model.DB.Where("ms_id = ?", c.Data).First(&u)
+	model.DB.Where("id = ?", c.Data).First(&u)
 	bot.Send(c.Message.Chat,
 		fmt.Sprintf("信息\n别名：%s\nMS_ID(MD5): %s\nclient_id: %s\nclient_secret: %s\n最近更新时间: %s",
 			u.Alias,
@@ -105,9 +105,9 @@ func bUnBind(m *tb.Message) {
 
 	for _, u := range data {
 		inlineBtn := tb.InlineButton{
-			Unique: "unbind" + u.MsId,
+			Unique: "unbind" + strconv.Itoa(u.ID),
 			Text:   u.Alias,
-			Data:   u.MsId,
+			Data:   strconv.Itoa(u.ID),
 		}
 		bot.Handle(&inlineBtn, bUnBindInlineBtn)
 		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
@@ -119,10 +119,10 @@ func bUnBind(m *tb.Message) {
 	)
 }
 func bUnBindInlineBtn(c *tb.Callback) {
-	if result := model.DB.Where("ms_id = ?", c.Data).Delete(&model.Client{}); result.Error != nil {
+	if result := model.DB.Where("id = ?", c.Data).Delete(&model.Client{}); result.Error != nil {
 		zap.S().Errorw("failed to delete db data",
 			"error", result.Error,
-			"ms_id", c.Data,
+			"id", c.Data,
 		)
 		bot.Send(c.Message.Chat, "解绑失败!")
 		return

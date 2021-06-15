@@ -11,6 +11,7 @@ import (
 )
 
 type Client struct {
+	ID           int    `gorm:"unique;primaryKey;not null"`
 	TgId         int64  `gorm:"not null"`
 	RefreshToken string `gorm:"not null"`
 	MsId         string `gorm:"not null"`

@@ -29,8 +29,7 @@ func BindUser(m *tb.Message, ClientId, ClientSecret string) error {
 		return err
 	}
 	var u = &model.Client{
-		TgId: m.Chat.ID,
-		//TG的Data传递最高64bytes,一些MsId超过了报错BUTTON_DATA_INVALID (0)，采取md5
+		TgId:         m.Chat.ID,
 		RefreshToken: cli.RefreshToken,
 		MsId:         util.Get16MD5Encode(gjson.Get(info, "id").String()),
 		Alias:        Alias,
