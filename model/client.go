@@ -1,24 +1,28 @@
 package model
 
 import (
-	"fmt"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type Client struct {
 	TgId         int64  `gorm:"not null"`
 	RefreshToken string `gorm:"not null"`
-	MsId         string `gorm:"unique;primaryKey;not null"`
+	MsId         string `gorm:"not null"`
 	Uptime       int64  `gorm:"autoUpdateTime;not null"`
 	Alias        string `gorm:"not null"`
 	ClientId     string `gorm:"not null"`
 	ClientSecret string `gorm:"not null"`
 	Other        string
+}
+type ErrClient struct {
+	*Client
+	Err error
 }
 
 const (
@@ -28,6 +32,15 @@ const (
 	scope       string = "openid offline_access mail.read user.read"
 )
 
+var client = &http.Client{}
+
+func init() {
+	client.Timeout = 10 * time.Second
+	tp := http.DefaultTransport.(*http.Transport).Clone()
+	tp.MaxIdleConns = 100
+	tp.MaxIdleConnsPerHost = 100
+	client.Transport = tp
+}
 func NewClient(clientId string, clientSecret string) *Client {
 	return &Client{
 		ClientId:     clientId,
@@ -47,7 +60,6 @@ func GetMSRegisterAppUrl() string {
 // GetTokenWithCode return access_token and refresh_token
 func (c *Client) GetTokenWithCode(code string) (error error) {
 	var r http.Request
-	client := &http.Client{}
 	r.ParseForm()
 	r.Form.Add("client_id", c.ClientId)
 	r.Form.Add("client_secret", c.ClientSecret)
@@ -60,17 +72,15 @@ func (c *Client) GetTokenWithCode(code string) (error error) {
 	if err != nil {
 		return err
 	}
-
 	//prevents the connection from being re-used
 	////https://stackoverflow.com/questions/17714494/golang-http-request-results-in-eof-errors-when-making-multiple-requests-successi
-	req.Close = true
-
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
+
 	if err != nil {
 		return err
 	}
@@ -84,7 +94,6 @@ func (c *Client) GetTokenWithCode(code string) (error error) {
 //return access_token and new refresh token
 func (c *Client) getToken() (access string) {
 	var r http.Request
-	client := &http.Client{}
 	r.ParseForm()
 	r.Form.Add("client_id", c.ClientId)
 	r.Form.Add("client_secret", c.ClientSecret)
@@ -98,7 +107,6 @@ func (c *Client) getToken() (access string) {
 	if err != nil {
 		return ""
 	}
-	req.Close = true
 	resp, err := client.Do(req)
 	if err != nil {
 		return ""
@@ -117,13 +125,10 @@ func (c *Client) getToken() (access string) {
 
 // GetUserInfo Get User's Information
 func (c *Client) GetUserInfo() (json string, error error) {
-	client := http.Client{}
 	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me", nil)
 	if err != nil {
 		return "", err
 	}
-
-	req.Close = true
 
 	req.Header.Set("Authorization", c.getToken())
 	resp, err := client.Do(req)
@@ -132,7 +137,7 @@ func (c *Client) GetUserInfo() (json string, error error) {
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(content))
+
 	if err != nil {
 		return "", err
 	}
@@ -144,12 +149,10 @@ func (c *Client) GetUserInfo() (json string, error error) {
 }
 
 func (c *Client) GetOutlookMails() error {
-	client := http.Client{}
 	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me/messages", nil)
 	if err != nil {
 		return err
 	}
-	req.Close = true
 	req.Header.Set("Authorization", c.getToken())
 	resp, err := client.Do(req)
 	if err != nil {
@@ -157,6 +160,7 @@ func (c *Client) GetOutlookMails() error {
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
+
 	if err != nil {
 		return err
 	}

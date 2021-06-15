@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/iyear/E5SubBot/config"
 	"github.com/iyear/E5SubBot/model"
-	"github.com/iyear/E5SubBot/task"
 	"github.com/iyear/E5SubBot/util"
 	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -226,7 +225,7 @@ func bOnText(m *tb.Message) {
 func bTask(m *tb.Message) {
 	for _, a := range config.Admins {
 		if a == m.Chat.ID {
-			task.SignTask()
+			SignTask()
 			return
 		}
 	}

@@ -23,12 +23,14 @@ const (
 )
 
 var (
-	BotToken    string
-	Socks5      string
-	BindMaxNum  int
-	ErrMaxTimes int
-	Notice      string
-	Admins      []int64
+	BotToken      string
+	Socks5        string
+	BindMaxNum    int
+	MaxGoroutines int
+	MaxErrTimes   int
+	Cron          string
+	Notice        string
+	Admins        []int64
 )
 
 func InitConfig() {
@@ -45,14 +47,17 @@ func InitConfig() {
 	viper.SetDefault("bindmax", 5)
 
 	BindMaxNum = viper.GetInt("bindmax")
-	ErrMaxTimes = viper.GetInt("errlimit")
+	MaxErrTimes = viper.GetInt("errlimit")
 	Notice = viper.GetString("notice")
+	Cron = viper.GetString("cron")
+	MaxGoroutines = viper.GetInt("goroutine")
 	Admins = getAdmins()
 
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
+		MaxGoroutines = viper.GetInt("goroutine")
 		BindMaxNum = viper.GetInt("bindmax")
-		ErrMaxTimes = viper.GetInt("errlimit")
+		MaxErrTimes = viper.GetInt("errlimit")
 		Notice = viper.GetString("notice")
 		Admins = getAdmins()
 	})

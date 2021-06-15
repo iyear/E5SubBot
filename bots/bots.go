@@ -5,9 +5,6 @@ import (
 	"github.com/iyear/E5SubBot/config"
 	"github.com/iyear/E5SubBot/logger"
 	"github.com/iyear/E5SubBot/model"
-	"github.com/iyear/E5SubBot/task"
-	"github.com/robfig/cron/v3"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"golang.org/x/net/proxy"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -40,6 +37,9 @@ func BotStart() {
 	logger.InitLogger()
 	//InitDB
 	model.InitDB()
+	//Init Task
+	InitTask()
+
 	Poller := &tb.LongPoller{Timeout: 15 * time.Second}
 	spamPoller := tb.NewMiddlewarePoller(Poller, func(upd *tb.Update) bool {
 		if upd.Message == nil {
@@ -75,7 +75,6 @@ func BotStart() {
 	fmt.Println("Bot: " + strconv.Itoa(bot.Me.ID) + " " + bot.Me.Username)
 
 	MakeHandle()
-	TaskLaunch()
 	fmt.Println("Bot Start")
 	fmt.Println("------------")
 	bot.Start()
@@ -93,10 +92,4 @@ func MakeHandle() {
 	//管理员
 	bot.Handle("/task", bTask)
 	bot.Handle("/log", bLog)
-}
-func TaskLaunch() {
-	c := cron.New()
-	c.AddFunc(viper.GetString("cron"), task.SignTask)
-	fmt.Println("Cron Task Start……")
-	c.Start()
 }
