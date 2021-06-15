@@ -60,13 +60,15 @@ func bMy(m *tb.Message) {
 func bMyInlineBtn(c *tb.Callback) {
 	var u *model.Client
 	model.DB.Where("id = ?", c.Data).First(&u)
+	fmt.Println(u.ID)
 	bot.Send(c.Message.Chat,
-		fmt.Sprintf("信息\n别名：%s\nMS_ID(MD5): %s\nclient_id: %s\nclient_secret: %s\n最近更新时间: %s",
+		fmt.Sprintf("信息\n别名：%s\nms_id: %s\nclient_id: %s\nclient_secret: %s\n最近更新时间: %s",
 			u.Alias,
 			u.MsId,
 			u.ClientId,
 			u.ClientSecret,
-			time.Unix(u.Uptime, 0).Format("2006-01-02 15:04:05")),
+			time.Unix(u.Uptime, 0).Format("2006-01-02 15:04:05"),
+		),
 	)
 	bot.Respond(c)
 }
@@ -74,10 +76,15 @@ func bMyInlineBtn(c *tb.Callback) {
 func bBind1(m *tb.Message) {
 	bot.Send(m.Chat,
 		fmt.Sprintf("应用注册： [点击直达](%s)", model.GetMSRegisterAppUrl()),
-		tb.ModeMarkdown)
+		tb.ModeMarkdown,
+	)
+
 	bot.Send(m.Chat,
-		"请回复client_id(空格)client_secret",
-		&tb.ReplyMarkup{ForceReply: true})
+		"请回复 `client_id(空格)client_secret`",
+		&tb.SendOptions{ParseMode: tb.ModeMarkdown,
+			ReplyMarkup: &tb.ReplyMarkup{ForceReply: true}},
+	)
+
 	UserStatus[m.Chat.ID] = USBind1
 	UserClientId[m.Chat.ID] = m.Text
 }
@@ -89,10 +96,18 @@ func bBind2(m *tb.Message) {
 	}
 	ClientId := tmp[0]
 	ClientSecret := tmp[1]
-	bot.Send(m.Chat, "授权账户： [点击直达]("+model.GetMSAuthUrl(ClientId)+")", tb.ModeMarkdown)
 	bot.Send(m.Chat,
-		"请回复http://localhost/…… + 空格 + 别名(用于管理)",
-		&tb.ReplyMarkup{ForceReply: true})
+		"授权账户： [点击直达]("+model.GetMSAuthUrl(ClientId)+")",
+		tb.ModeMarkdown,
+	)
+
+	bot.Send(m.Chat,
+		"请回复`http://localhost/……(空格)别名`(用于管理)",
+		&tb.SendOptions{ParseMode: tb.ModeMarkdown,
+			ReplyMarkup: &tb.ReplyMarkup{ForceReply: true},
+		},
+	)
+
 	UserStatus[m.Chat.ID] = USBind2
 	UserClientId[m.Chat.ID] = ClientId
 	UserClientSecret[m.Chat.ID] = ClientSecret
@@ -190,7 +205,7 @@ func bOnText(m *tb.Message) {
 	switch UserStatus[m.Chat.ID] {
 	case USNone:
 		{
-			bot.Send(m.Chat, "发送/help获取帮助嗷")
+			bot.Send(m.Chat, "发送 /help 获取帮助嗷")
 			return
 		}
 	case USBind1:

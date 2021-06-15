@@ -44,10 +44,11 @@ func BindUser(m *tb.Message, ClientId, ClientSecret string) error {
 	}
 	//MS information has gotten
 	bot.Send(m.Chat,
-		fmt.Sprintf("MS_ID(MD5)： %s\nuserPrincipalName： %s\ndisplayName： %s\n",
+		fmt.Sprintf("ms_id(MD5)：%s\nuserPrincipalName：%s\ndisplayName：%s",
 			u.MsId,
 			gjson.Get(info, "userPrincipalName").String(),
-			gjson.Get(info, "displayName").String()),
+			gjson.Get(info, "displayName").String(),
+		),
 	)
 
 	if result := model.DB.Create(&u); result.Error != nil {
