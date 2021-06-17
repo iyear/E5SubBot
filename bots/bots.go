@@ -80,7 +80,6 @@ func BotStart() {
 	bot.Start()
 }
 func MakeHandle() {
-	fmt.Println("Make Handlers……")
 	//所有用户
 	bot.Handle("/start", bStart)
 	bot.Handle("/my", bMy)

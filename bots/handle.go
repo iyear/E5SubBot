@@ -60,7 +60,6 @@ func bMy(m *tb.Message) {
 func bMyInlineBtn(c *tb.Callback) {
 	var u *model.Client
 	model.DB.Where("id = ?", c.Data).First(&u)
-	fmt.Println(u.ID)
 	bot.Send(c.Message.Chat,
 		fmt.Sprintf("信息\n别名：%s\nms_id: %s\nclient_id: %s\nclient_secret: %s\n最近更新时间: %s",
 			u.Alias,

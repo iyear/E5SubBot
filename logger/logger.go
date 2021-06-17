@@ -7,10 +7,6 @@ import (
 	"os"
 )
 
-func Println(a ...interface{}) {
-	return
-}
-
 // 日志切割设置
 func getLogWriter() zapcore.WriteSyncer {
 	lumberJackLogger := &lumberjack.Logger{

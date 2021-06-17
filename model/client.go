@@ -38,15 +38,17 @@ var client = &http.Client{}
 func init() {
 	client.Timeout = 10 * time.Second
 	tp := http.DefaultTransport.(*http.Transport).Clone()
-	//TODO
 	//https://gocn.vip/topics/11970
 	//DefaultMaxIdleConnsPerHost 设置的太小就会导致一个问题,
 	//在大量请求的情况下去访问特定的 host 的时候,长连接会退化成短链接.
 	tp.MaxIdleConns = 0
+	tp.TLSHandshakeTimeout = 20 * time.Second
 	tp.MaxIdleConnsPerHost = 50
+	tp.ResponseHeaderTimeout = 20 * time.Second
 	//to avoid "context deadline exceeded (Client.Timeout exceeded while awaiting headers)"
 	//https://cloud.tencent.com/developer/article/1529840
-	tp.IdleConnTimeout = 5 * time.Second
+	tp.IdleConnTimeout = 20 * time.Second
+	tp.ExpectContinueTimeout = 20 * time.Second
 
 	client.Transport = tp
 }
@@ -99,7 +101,7 @@ func (c *Client) GetTokenWithCode(code string) (error error) {
 }
 
 //return access_token and new refresh token
-func (c *Client) getToken() (access string) {
+func (c *Client) getToken() (accessToken string, error error) {
 	var r http.Request
 	r.ParseForm()
 	r.Form.Add("client_id", c.ClientId)
@@ -112,32 +114,36 @@ func (c *Client) getToken() (access string) {
 	//fmt.Println(body)
 	req, err := http.NewRequest("POST", msApiUrl+"/common/oauth2/v2.0/token", body)
 	if err != nil {
-		return ""
+		return "", err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return ""
+		return "", err
 	}
 	defer resp.Body.Close()
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return ""
+		return "", err
 	}
 	if gjson.Get(string(content), "token_type").String() == "Bearer" {
 		c.RefreshToken = gjson.Get(string(content), "refresh_token").String()
-		return gjson.Get(string(content), "access_token").String()
+		return gjson.Get(string(content), "access_token").String(), nil
 	}
-	return ""
+	return "", errors.New(gjson.Get(string(content), "error").String())
 }
 
 // GetUserInfo Get User's Information
 func (c *Client) GetUserInfo() (json string, error error) {
+	var accessToken string
 	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me", nil)
 	if err != nil {
 		return "", err
 	}
-
-	req.Header.Set("Authorization", c.getToken())
+	accessToken, err = c.getToken()
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", accessToken)
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -156,11 +162,16 @@ func (c *Client) GetUserInfo() (json string, error error) {
 }
 
 func (c *Client) GetOutlookMails() error {
+	var accessToken string
 	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me/messages", nil)
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Authorization", c.getToken())
+	accessToken, err = c.getToken()
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", accessToken)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
