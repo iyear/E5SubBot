@@ -189,7 +189,7 @@ func bExport(m *tb.Message) {
 		MIME:     "text/plain",
 	}
 	bot.Send(m.Chat, exportFile)
-	//不遗留本地文件
+
 	if exportFile.InCloud() != true || os.Remove(fileName) != nil {
 		zap.S().Errorw("failed to export files")
 	}

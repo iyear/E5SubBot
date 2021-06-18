@@ -30,7 +30,7 @@ const (
 
 func BotStart() {
 	var err error
-	fmt.Println(logo)
+	fmt.Printf("%s\n", logo)
 	//read config
 	config.InitConfig()
 	//Init Logger

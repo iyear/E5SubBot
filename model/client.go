@@ -182,7 +182,7 @@ func (c *Client) GetOutlookMails() error {
 	if err != nil {
 		return err
 	}
-	//fmt.Println(string(content))
+
 	//这里的.需要转义，否则会按路径的方式解析
 	if gjson.Get(string(content), "@odata\\.context").String() != "" {
 		return nil

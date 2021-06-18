@@ -57,13 +57,12 @@ func GetPathFiles(path string) []string {
 	return t
 }
 
-// GetRecentLogs 输入文件夹路径，返回最近n个log的路径，不到n个返回所有
 func GetRecentLogs(path string, n int) []string {
 	var paths []string
 	if !PathExists(path) {
 		return paths
 	}
-	//path末尾检查/
+
 	if path[len(path)-1:] != "/" {
 		path += "/"
 	}
@@ -71,7 +70,6 @@ func GetRecentLogs(path string, n int) []string {
 	d, _ := time.ParseDuration("-24h")
 	//不到n个返回所有
 	nt := Min(n, len(GetPathFiles(path)))
-	//fmt.Println(nt)
 	for i := 1; i <= nt; {
 		if PathExists(path + data.Format("2006-01-02") + ".log") {
 			paths = append(paths, data.Format("2006-01-02")+".log")
