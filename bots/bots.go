@@ -56,14 +56,16 @@ func BotStart() {
 	}
 	//set socks5
 	if config.Socks5 != "" {
-		fmt.Println("Proxy:" + config.Socks5)
+		fmt.Println("Proxy: " + config.Socks5)
 		dialer, err := proxy.SOCKS5("tcp", config.Socks5, nil, proxy.Direct)
 		if err != nil {
-			zap.S().Errorw("failed to make dialer", "error", err, "socks5", config.Socks5)
+			zap.S().Errorw("failed to get dialer",
+				"error", err, "proxy", config.Socks5)
 		}
 		httpTransport := &http.Transport{}
-		httpClient := &http.Client{Transport: httpTransport}
 		httpTransport.Dial = dialer.Dial
+		httpClient := &http.Client{Transport: httpTransport}
+
 		botSetting.Client = httpClient
 	}
 	//create bot

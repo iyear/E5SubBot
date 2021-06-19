@@ -41,7 +41,11 @@ func InitConfig() {
 		zap.S().Errorw("failed to read config", "error", err)
 	}
 	BotToken = viper.GetString("bot_token")
+	Cron = viper.GetString("cron")
 	Socks5 = viper.GetString("socks5")
+	//if Socks5[:5] != "socks5" {
+	//	Socks5 = "socks5://" + Socks5
+	//}
 
 	viper.SetDefault("errlimit", 5)
 	viper.SetDefault("bindmax", 5)
@@ -49,7 +53,7 @@ func InitConfig() {
 	BindMaxNum = viper.GetInt("bindmax")
 	MaxErrTimes = viper.GetInt("errlimit")
 	Notice = viper.GetString("notice")
-	Cron = viper.GetString("cron")
+
 	MaxGoroutines = viper.GetInt("goroutine")
 	Admins = getAdmins()
 
