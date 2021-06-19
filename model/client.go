@@ -1,13 +1,10 @@
 package model
 
 import (
+	"github.com/guonaihong/gout"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
-	"io/ioutil"
-	"net/http"
 	"net/url"
-	"strings"
-	"time"
 )
 
 type Client struct {
@@ -33,25 +30,6 @@ const (
 	scope       string = "openid offline_access mail.read user.read"
 )
 
-var client = &http.Client{}
-
-func init() {
-	client.Timeout = 10 * time.Second
-	tp := http.DefaultTransport.(*http.Transport).Clone()
-	//https://gocn.vip/topics/11970
-	//DefaultMaxIdleConnsPerHost 设置的太小就会导致一个问题,
-	//在大量请求的情况下去访问特定的 host 的时候,长连接会退化成短链接.
-	tp.MaxIdleConns = 0
-	tp.TLSHandshakeTimeout = 20 * time.Second
-	tp.MaxIdleConnsPerHost = 50
-	tp.ResponseHeaderTimeout = 20 * time.Second
-	//to avoid "context deadline exceeded (Client.Timeout exceeded while awaiting headers)"
-	//https://cloud.tencent.com/developer/article/1529840
-	tp.IdleConnTimeout = 20 * time.Second
-	tp.ExpectContinueTimeout = 20 * time.Second
-
-	client.Transport = tp
-}
 func NewClient(clientId string, clientSecret string) *Client {
 	return &Client{
 		ClientId:     clientId,
@@ -68,124 +46,102 @@ func GetMSRegisterAppUrl() string {
 	return appUrl
 }
 
-// GetTokenWithCode return access_token and refresh_token
-func (c *Client) GetTokenWithCode(code string) (error error) {
-	var r http.Request
-	r.ParseForm()
-	r.Form.Add("client_id", c.ClientId)
-	r.Form.Add("client_secret", c.ClientSecret)
-	r.Form.Add("grant_type", "authorization_code")
-	r.Form.Add("scope", scope)
-	r.Form.Add("code", code)
-	r.Form.Add("redirect_uri", redirectUri)
-	body := strings.NewReader(r.Form.Encode())
-	req, err := http.NewRequest("POST", msApiUrl+"/common/oauth2/v2.0/token", body)
-	if err != nil {
-		return err
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	content, err := ioutil.ReadAll(resp.Body)
+func (c *Client) GetTokenWithCode(code string) error {
+	var content string
+	err := gout.POST(msApiUrl + "/common/oauth2/v2.0/token").
+		SetWWWForm(gout.H{
+			"client_id":     c.ClientId,
+			"client_secret": c.ClientSecret,
+			"grant_type":    "authorization_code",
+			"scope":         scope,
+			"code":          code,
+			"redirect_uri":  redirectUri,
+		}).
+		BindBody(&content).Do()
 
 	if err != nil {
 		return err
 	}
-	if gjson.Get(string(content), "token_type").String() == "Bearer" {
-		c.RefreshToken = gjson.Get(string(content), "refresh_token").String()
+
+	if gjson.Get(content, "token_type").String() == "Bearer" {
+		c.RefreshToken = gjson.Get(content, "refresh_token").String()
 		return nil
 	}
-	return errors.New(string(content))
+	return errors.New(content)
 }
 
-//return access_token and new refresh token
-func (c *Client) getToken() (accessToken string, error error) {
-	var r http.Request
-	r.ParseForm()
-	r.Form.Add("client_id", c.ClientId)
-	r.Form.Add("client_secret", c.ClientSecret)
-	r.Form.Add("grant_type", "refresh_token")
-	r.Form.Add("scope", scope)
-	r.Form.Add("refresh_token", c.RefreshToken)
-	r.Form.Add("redirect_uri", redirectUri)
-	body := strings.NewReader(r.Form.Encode())
-	//fmt.Println(body)
-	req, err := http.NewRequest("POST", msApiUrl+"/common/oauth2/v2.0/token", body)
+//getToken return accessToken and error
+func (c *Client) getToken() (string, error) {
+
+	var content string
+	err := gout.POST(msApiUrl + "/common/oauth2/v2.0/token").
+		SetWWWForm(gout.H{
+			"client_id":     c.ClientId,
+			"client_secret": c.ClientSecret,
+			"grant_type":    "refresh_token",
+			"scope":         scope,
+			"refresh_token": c.RefreshToken,
+			"redirect_uri":  redirectUri,
+		}).
+		BindBody(&content).
+		Do()
 	if err != nil {
 		return "", err
 	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
+
+	if gjson.Get(content, "token_type").String() == "Bearer" {
+		c.RefreshToken = gjson.Get(content, "refresh_token").String()
+		return gjson.Get(content, "access_token").String(), nil
 	}
-	defer resp.Body.Close()
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-	if gjson.Get(string(content), "token_type").String() == "Bearer" {
-		c.RefreshToken = gjson.Get(string(content), "refresh_token").String()
-		return gjson.Get(string(content), "access_token").String(), nil
-	}
-	return "", errors.New(gjson.Get(string(content), "error").String())
+	return "", errors.New(gjson.Get(content, "error").String())
 }
 
-// GetUserInfo Get User's Information
-func (c *Client) GetUserInfo() (json string, error error) {
-	var accessToken string
-	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me", nil)
+// GetUserInfo return infoJSON and error
+func (c *Client) GetUserInfo() (string, error) {
+	var (
+		content     string
+		err         error
+		accessToken string
+	)
+	if accessToken, err = c.getToken(); err != nil {
+		return "", err
+	}
+	err = gout.GET(msGraUrl + "/v1.0/me/messages").
+		SetHeader(gout.H{
+			"Authorization": accessToken,
+		}).
+		BindBody(&content).
+		Do()
 	if err != nil {
 		return "", err
 	}
-	accessToken, err = c.getToken()
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Authorization", accessToken)
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	content, err := ioutil.ReadAll(resp.Body)
 
-	if err != nil {
-		return "", err
+	if gjson.Get(content, "id").String() != "" {
+		return content, nil
 	}
-	if gjson.Get(string(content), "id").String() != "" {
-		//fmt.Println("UserName: " + gjson.Get(string(content), "displayName").String())
-		return string(content), nil
-	}
-	return "", errors.New(string(content))
+	return "", errors.New(content)
 }
 
 func (c *Client) GetOutlookMails() error {
+
+	var content string
+	var err error
 	var accessToken string
-	req, err := http.NewRequest("GET", msGraUrl+"/v1.0/me/messages", nil)
+	if accessToken, err = c.getToken(); err != nil {
+		return err
+	}
+	err = gout.GET(msGraUrl + "/v1.0/me/messages").
+		SetHeader(gout.H{
+			"Authorization": accessToken,
+		}).
+		BindBody(&content).
+		Do()
 	if err != nil {
 		return err
 	}
-	accessToken, err = c.getToken()
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Authorization", accessToken)
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	content, err := ioutil.ReadAll(resp.Body)
-
-	if err != nil {
-		return err
-	}
-
 	//这里的.需要转义，否则会按路径的方式解析
-	if gjson.Get(string(content), "@odata\\.context").String() != "" {
+	if gjson.Get(content, "@odata\\.context").String() != "" {
 		return nil
 	}
-	return errors.New(gjson.Get(string(content), "error").String())
+	return errors.New(gjson.Get(content, "error").String())
 }
