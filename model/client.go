@@ -106,7 +106,7 @@ func (c *Client) GetUserInfo() (string, error) {
 	if accessToken, err = c.getToken(); err != nil {
 		return "", err
 	}
-	err = gout.GET(msGraUrl + "/v1.0/me/messages").
+	err = gout.GET(msGraUrl + "/v1.0/me").
 		SetHeader(gout.H{
 			"Authorization": accessToken,
 		}).

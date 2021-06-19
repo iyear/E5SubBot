@@ -43,11 +43,10 @@ func InitConfig() {
 	BotToken = viper.GetString("bot_token")
 	Cron = viper.GetString("cron")
 	Socks5 = viper.GetString("socks5")
-	//if Socks5[:5] != "socks5" {
-	//	Socks5 = "socks5://" + Socks5
-	//}
 
 	viper.SetDefault("errlimit", 5)
+	viper.SetDefault("bindmax", 5)
+	viper.SetDefault("goroutine", 10)
 	viper.SetDefault("bindmax", 5)
 
 	BindMaxNum = viper.GetInt("bindmax")
