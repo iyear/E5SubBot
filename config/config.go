@@ -57,7 +57,6 @@ func InitConfig() {
 	viper.SetDefault("errlimit", 5)
 	viper.SetDefault("bindmax", 5)
 	viper.SetDefault("goroutine", 10)
-	viper.SetDefault("bindmax", 5)
 
 	BindMaxNum = viper.GetInt("bindmax")
 	MaxErrTimes = viper.GetInt("errlimit")
