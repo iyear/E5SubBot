@@ -40,6 +40,7 @@ type MysqlConfig struct {
 	User     string
 	Password string
 	DB       string
+	Table    string
 }
 
 func InitConfig() {
@@ -71,6 +72,7 @@ func InitConfig() {
 		User:     viper.GetString("mysql.user"),
 		Password: viper.GetString("mysql.password"),
 		DB:       viper.GetString("mysql.database"),
+		Table:    viper.GetString("mysql.table"),
 	}
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {

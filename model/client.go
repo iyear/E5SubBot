@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/guonaihong/gout"
+	"github.com/iyear/E5SubBot/config"
 	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"net/url"
@@ -30,6 +31,9 @@ const (
 	scope       string = "openid offline_access mail.read user.read"
 )
 
+func (c *Client) TableName() string {
+	return config.Mysql.Table
+}
 func NewClient(clientId string, clientSecret string) *Client {
 	return &Client{
 		ClientId:     clientId,
