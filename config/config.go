@@ -31,7 +31,16 @@ var (
 	Cron          string
 	Notice        string
 	Admins        []int64
+	Mysql         MysqlConfig
 )
+
+type MysqlConfig struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	DB       string
+}
 
 func InitConfig() {
 	viper.SetConfigName("config")
@@ -56,6 +65,13 @@ func InitConfig() {
 	MaxGoroutines = viper.GetInt("goroutine")
 	Admins = getAdmins()
 
+	Mysql = MysqlConfig{
+		Host:     viper.GetString("mysql.host"),
+		Port:     viper.GetInt("mysql.port"),
+		User:     viper.GetString("mysql.user"),
+		Password: viper.GetString("mysql.password"),
+		DB:       viper.GetString("mysql.database"),
+	}
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		MaxGoroutines = viper.GetInt("goroutine")
