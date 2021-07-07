@@ -4,20 +4,13 @@
 ![](https://img.shields.io/badge/license-GPL-lightgrey.svg?style=flat-square)
 ![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=green&style=flat-square)
 
-English | [简体中文](https://github.com/iyear/E5SubBot/blob/master/README_zhCN.md)
+English | [简体中文](https://github.com/iyear/E5SubBot/blob/master/README_zhCN.md) | [交流群组](https://t.me/e5subbot)
 
 A Simple Telebot for E5 Renewal
 
 `Golang` + `MySQL`
 
-DEMO: https://t.me/E5Sub_bot (all new functions will be tested in DEMO)
-
-Communication: [Telegram Group](https://t.me/e5subbot)
-
-## Preview
-<center class="half">
-    <img src="https://raw.githubusercontent.com/iyear/E5SubBot/master/pics/bind.JPG" width="200"/><img src="https://raw.githubusercontent.com/iyear/E5SubBot/master/pics/my.JPG" width="200"/><img src="https://raw.githubusercontent.com/iyear/E5SubBot/master/pics/task.JPG" width="200"/>
-</center>
+DEMO: https://t.me/E5Sub_bot
 
 ## Feature
 
@@ -25,7 +18,7 @@ Communication: [Telegram Group](https://t.me/e5subbot)
 - Manageable Simple Account System
 - Available Task Execution Feedback
 - Convenient Authorization
-
+- Use concurrency to speed up
 
 ## Principle
 
@@ -60,15 +53,16 @@ docker-compose up -d
 ```
 ### Binary Deployment
 
-Download the binary files of the corresponding system on the [Releases](https://github.com/iyear/E5SubBot/releases) page and upload it to the server
+Download the binary files of the corresponding system on the [Releases](https://github.com/iyear/E5SubBot/releases) page
+and upload it to the server
 
-Windows: Start `E5SubBot.exe` in `cmd`
+Windows: Start `E5SubBot.exe`
 
-Linux: 
+Linux:
 
 ```bash
 screen -S e5sub
-chmod 773 E5SubBot
+chmod +x E5SubBot
 ./E5SubBot
 (Ctrl A+D)
 ```
@@ -77,7 +71,7 @@ chmod 773 E5SubBot
 Download the source code and install the GO environment
 
 ```shell
-go build
+git clone https://github.com/iyear/E5SubBot.git && cd E5SubBot && go build
 ```
 
 ## Configuration
@@ -91,6 +85,7 @@ bot_token: YOUR_BOT_TOKEN
 socks5: 127.0.0.1:1080
 notice: "first line \n second line"
 admin: 66666,77777,88888
+goroutine: 10
 errlimit: 5
 cron: "1 */3 * * *"
 bindmax: 3
@@ -100,21 +95,25 @@ mysql:
   user: e5sub
   password: e5sub
   database: e5sub
+  table: users
 ```
 
-`bindmax`, `notice`, `admin`, `errlimit` can be hot updated, just update `config.yml` to save.
-|  Configuration   | Explanation|
-|  ----  | ----  |
-| bot_token  | Change to your own `BotToken` |
-| socks5  | `Socks5` proxy,if you do not need ,you should delete it. For example: `127.0.0.1:1080` |
-|notice|Announcement. Merged into `/help`|
-|admin|The administrator's `tgid`, go to https://t.me/userinfobot to get it, separated by `,`; Administrator permissions: manually call the task, get the total feedback of the task|
-|errlimit|The maximum number of errors for a single account, automatically unbind the single account and send a notification when it is full, without limiting the number of errors, change the value to a negative number `(-1)`; all errors will be cleared after the bot restarts|
-|cron|API call frequency, using `cron` expression|
-|bindmax|Maximum number of bindable|
-|mysql|Mysql configuration, please create database in advance|
+`bindmax`, `notice`, `admin`,`goroutine`, `errlimit` can be hot updated, just update `config.yml` to save.
+
+|  Configuration   | Explanation|Default|
+|  ----  | ----  |----|
+| bot_token  | Change to your own `BotToken` |-|
+| socks5  | `Socks5` proxy,if you do not need ,you should delete it. For example: `127.0.0.1:1080` |-|
+|notice|Announcement. Merged into `/help`|-|
+|admin|The administrator's `tgid`, go to https://t.me/userinfobot to get it, separated by `,`; Administrator permissions: manually call the task, get the total feedback of the task|-|
+|goroutine|Concurrent number, don’t be too big|10|
+|errlimit|The maximum number of errors for a single account, automatically unbind the single account and send a notification when it is full, without limiting the number of errors, change the value to a negative number `(-1)`; all errors will be cleared after the bot restarts|5|
+|cron|API call frequency, using `cron` expression|-|
+|bindmax|Maximum number of bindable|5|
+|mysql|Mysql configuration, please create database in advance(If you upgrade the old version, please set table to users, otherwise the data table cannot be read)|-|
 
 ### Command
+
 ```
 /my View bound account information
 /bind Bind new account
@@ -141,25 +140,14 @@ Suspected memory leak. Not yet resolved, please run the daemon or restart Bot re
 
 https://t.me/e5subbot/5201
 
-## Third-Party
-- [Telebot](https://gopkg.in/tucnak/telebot)
-- [Mysql_driver](https://github.com/go-sql-driver/mysql)
-- [Gjson](https://github.com/tidwall/gjson)
-- [Cron](https://github.com/robfig/cron/)
-- [Viper](https://github.com/spf13/viper)
-- [Goreleaser](https://https://github.com/goreleaser/goreleaser)
-
 ## Contributing
 - Provide documentation in other languages
 - Provide help for code operation
 - Suggests user interaction
 - ……
 ## More Functions
-If you still want to support new features, please use FeatHub to vote. We will consider the voting results and other factors to determine the development priority.  
 
-[![Feature Requests](https://cloud.githubusercontent.com/assets/390379/10127973/045b3a96-6560-11e5-9b20-31a2032956b2.png)](http://feathub.com/NervJS/taro)  
-
-[![Feature Requests](https://feathub.com/iyear/E5SubBot?format=svg)](https://feathub.com/iyear/E5SubBot)  
+If you still want to support new features, please initiate an issue.
 
 ## License
 

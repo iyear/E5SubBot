@@ -4,6 +4,7 @@ env:
 builds:
   - env:
       - CGO_ENABLED=0
+    ldflags: -s -w
     goos:
       - linux
       - windows
@@ -28,6 +29,11 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
+    files:
+      - README.md
+      - README_zhCN.md
+      - config.yml.example
+      - LICENSE
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:

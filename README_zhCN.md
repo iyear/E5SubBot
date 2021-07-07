@@ -4,20 +4,14 @@
 ![](https://img.shields.io/badge/license-GPL-lightgrey.svg?style=flat-square)
 ![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=green&style=flat-square)
 
-[English](https://github.com/iyear/E5SubBot) | 简体中文
+[English](https://github.com/iyear/E5SubBot) | 简体中文 | [交流群组](https://t.me/e5subbot)
 
 A Simple Telebot for E5 Renewal
 
 `Golang` + `MySQL`
 
-DEMO: https://t.me/E5Sub_bot (长期运行，所有新功能会在DEMO测试)
+DEMO: https://t.me/E5Sub_bot
 
-[交流群组](https://t.me/e5subbot)
-
-## 预览
-<center class="half">
-    <img src="https://raw.githubusercontent.com/iyear/E5SubBot/master/pics/bind.JPG" width="200"/><img src="https://raw.githubusercontent.com/iyear/E5SubBot/master/pics/my.JPG" width="200"/><img src="https://raw.githubusercontent.com/iyear/E5SubBot/master/pics/task.JPG" width="200"/>
-</center>
 
 ## 特性
 
@@ -25,6 +19,7 @@ DEMO: https://t.me/E5Sub_bot (长期运行，所有新功能会在DEMO测试)
 - 可管理的简易账户系统
 - 完善的任务执行反馈
 - 极为方便的授权方式
+- 使用并发加快运行速度
 
 
 ## 原理
@@ -61,13 +56,13 @@ docker-compose up -d
 
 在[Releases](https://github.com/iyear/E5SubBot/releases)页面下载对应系统的二进制文件，上传至服务器
 
-Windows: 在`cmd`中启动 `E5SubBot.exe`
+Windows: 启动 `E5SubBot.exe`
 
-Linux: 
+Linux:
 
 ```bash
 screen -S e5sub
-chmod 773 E5SubBot
+chmod +x E5SubBot
 ./E5SubBot
 (Ctrl A+D)
 ```
@@ -76,7 +71,7 @@ chmod 773 E5SubBot
 下载源码，安装GO环境
 
 ```shell
-go build
+git clone https://github.com/iyear/E5SubBot.git && cd E5SubBot && go build
 ```
 
 ## 部署配置
@@ -90,6 +85,7 @@ bot_token: YOUR_BOT_TOKEN
 socks5: 127.0.0.1:1080
 notice: "第一行\n第二行"
 admin: 66666,77777,88888
+goroutine: 10
 errlimit: 5
 cron: "1 */3 * * *"
 bindmax: 3
@@ -99,21 +95,25 @@ mysql:
   user: e5sub
   password: e5sub
   database: e5sub
+  table: users
 ```
 
-`bindmax`,`notice`,`admin`,`errlimit`可热更新，直接更新`config.yml`保存即可
-|  配置项   | 说明  |
-|  ----  | ----  |
-| bot_token  | 更换为自己的`BotToken` |
-| socks5  | `Socks5`代理,不需要删去即可.例如:`127.0.0.1:1080` |
-|notice|公告.合并至`/help`|
-|admin|管理员`tgid`，前往 https://t.me/userinfobot 获取，用`,`隔开;管理员权限: 手动调用任务，获得任务总反馈|
-|errlimit|单账户最大出错次数，满后自动解绑单账户并发送通知，不限制错误次数将值改为负数`(-1)`即可;bot重启后会清零所有错误次数|
-|cron|API调用频率，使用cron表达式|
-|bindmax|最大可绑定数|
-|mysql|mysql配置，请提前创建数据库|
+`bindmax`,`notice`,`admin`,`goroutine`,`errlimit`可热更新，直接更新`config.yml`保存即可
+
+|  配置项   | 说明  |默认值|
+|  ----  | ----  | ---- |
+| bot_token  | 更换为自己的`BotToken` | -|
+| socks5  | `Socks5`代理,不需要删去即可.例如:`127.0.0.1:1080` |-|
+|notice|公告.合并至`/help`|-|
+|admin|管理员`tgid`，前往 https://t.me/userinfobot 获取，用`,`隔开;管理员权限: 手动调用任务，获得任务总反馈|-|
+|goroutine|并发数，不要过大|10|
+|errlimit|单账户最大出错次数，满后自动解绑单账户并发送通知，不限制错误次数将值改为负数`(-1)`即可;bot重启后会清零所有错误次数|5|
+|cron|API调用频率，使用cron表达式|-|
+|bindmax|最大可绑定数|5|
+|mysql|mysql配置，请提前创建数据库(旧版本升级请设置table为users，否则读不到数据表)|-|
 
 ### 命令
+
 ```
 /my 查看已绑定账户信息  
 /bind  绑定新账户  
@@ -143,54 +143,17 @@ mysql:
 > 无法通过Bot创建应用程序
 
 https://t.me/e5subbot/5201
+
 ## 更多功能
-如果你还想支持新的特性，请使用 FeatHub 进行投票，我们将综合考虑投票结果等因素来确定开发的优先级。
 
-[![Feature Requests](https://cloud.githubusercontent.com/assets/390379/10127973/045b3a96-6560-11e5-9b20-31a2032956b2.png)](http://feathub.com/NervJS/taro)  
+如果你还想支持新的特性，请发起issue.
 
-[![Feature Requests](https://feathub.com/iyear/E5SubBot?format=svg)](https://feathub.com/iyear/E5SubBot)  
 ## 做出贡献
+
 - 提供其他语言的文档
 - 为代码运行提供帮助
 - 对用户交互提出建议
 - ……
-## 小总结
-#### 得到了什么？
-- git的基本操作:add,commit,pull,push.但是对代码合并与冲突解决没有得到足够的实践和深入  
-- github版本库方面的使用(issue,pull request...),还有一些没玩过
-- 体验了Docker Hub 的自动构建
-- sql的CRUD，但都只是浮于表面，有时间再去琢磨
-- telegram bot的golang基本框架和一些有意思的玩法
-- 一些著名第三方库(viper,gjson)的基本用法
-- docker以及docker-compose的基本用法
-- 一些工具:gox;goreleaser的基本用法
-- ……
-#### 还缺点什么？
-
-- 对`CGO`知难而退，编译各种出错。下个项目如果用到`sqlite`一定解决`CGO`交叉编译
-- `DockerFile` 还不会写
-- 对项目的概念和意识不太行，目录太乱，随缘写全局变量
-- 看`telebot`的文档还好，看`stackflow` 只能看看代码。搜索还是习惯性带中文导致`stackflow`很难出现，降低了解决问题的效率
-
-#### 最后
-
-从2020.3.28开发至2020.4.12，一共经历14天，利用课余时间最终完成。
-
-就要开学了，因为马上步入高三，学习紧迫，遂不再进行功能开发。
-
-项目差不多就停更了，最多也就是每个星期看看issue、tg群组，修一修bug
-
-**DEMO依旧能保持服务水平，不会因为个人问题在这段时间停止运行**
-
-如果一年后还有人在用，一定会继续
-
-## Third-Party
-- [telebot](https://gopkg.in/tucnak/telebot)
-- [mysql_driver](https://github.com/go-sql-driver/mysql)
-- [gjson](https://github.com/tidwall/gjson)
-- [cron](https://github.com/robfig/cron/)
-- [viper](https://github.com/spf13/viper)
-- [goreleaser](https://https://github.com/goreleaser/goreleaser)
 
 ## License
 
