@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+FROM golang:alpine as builder
 
 WORKDIR /root
 
