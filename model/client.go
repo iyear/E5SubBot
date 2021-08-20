@@ -32,7 +32,7 @@ const (
 )
 
 func (c *Client) TableName() string {
-	return config.Mysql.Table
+	return config.Table
 }
 func NewClient(clientId string, clientSecret string) *Client {
 	return &Client{
