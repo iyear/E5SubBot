@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"github.com/iyear/E5SubBot/config"
 	"github.com/iyear/E5SubBot/model"
-	"github.com/iyear/E5SubBot/util"
 	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -256,25 +254,11 @@ func bLog(m *tb.Message) {
 		bot.Send(m.Chat, "只有Bot管理员才有权限执行此操作")
 		return
 	}
-	logs := util.GetRecentLogs(config.LogBasePath, 5)
-	var inlineKeys [][]tb.InlineButton
-	for _, log := range logs {
-		inlineBtn := tb.InlineButton{
-			Unique: "log" + strings.Replace(strings.TrimSuffix(filepath.Base(log), ".log"), "-", "", -1),
-			Text:   filepath.Base(log),
-			Data:   filepath.Base(log),
-		}
-		bot.Handle(&inlineBtn, bLogsInlineBtn)
-		inlineKeys = append(inlineKeys, []tb.InlineButton{inlineBtn})
-	}
-	bot.Send(m.Chat, "请选择日志", &tb.ReplyMarkup{InlineKeyboard: inlineKeys})
-}
-func bLogsInlineBtn(c *tb.Callback) {
+	file := config.LogBasePath + "latest.log"
 	logfile := &tb.Document{
-		File:     tb.FromDisk(config.LogBasePath + c.Data),
-		FileName: c.Data,
+		File:     tb.FromDisk(file),
+		FileName: "latest.log",
 		MIME:     "text/plain",
 	}
-	bot.Send(c.Message.Chat, logfile)
-	bot.Respond(c)
+	bot.Send(m.Chat, logfile)
 }

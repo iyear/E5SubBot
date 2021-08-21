@@ -69,5 +69,5 @@ func MSAppIsExist(TgId int64, ClientId string) bool {
 	result := model.DB.
 		Where("tg_id = ? AND client_id = ?", TgId, ClientId).
 		First(&model.Client{})
-	return util.IF(result.RowsAffected == 0, false, true).(bool)
+	return !(result.RowsAffected == 0)
 }

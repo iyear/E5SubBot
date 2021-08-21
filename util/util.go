@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
-	"time"
 )
 
 // Min true=>no error
@@ -55,29 +54,6 @@ func GetPathFiles(path string) []string {
 		}
 	}
 	return t
-}
-
-func GetRecentLogs(path string, n int) []string {
-	var paths []string
-	if !PathExists(path) {
-		return paths
-	}
-
-	if path[len(path)-1:] != "/" {
-		path += "/"
-	}
-	data := time.Now()
-	d, _ := time.ParseDuration("-24h")
-	//不到n个返回所有
-	nt := Min(n, len(GetPathFiles(path)))
-	for i := 1; i <= nt; {
-		if PathExists(path + data.Format("2006-01-02") + ".log") {
-			paths = append(paths, data.Format("2006-01-02")+".log")
-			i++
-		}
-		data = data.Add(d)
-	}
-	return paths
 }
 func IF(f bool, a interface{}, b interface{}) interface{} {
 	if f {
