@@ -74,7 +74,7 @@ func (c *Client) GetTokenWithCode(code string) error {
 	return errors.New(content)
 }
 
-//getToken return accessToken and error
+// getToken return accessToken and error
 func (c *Client) getToken() (string, error) {
 
 	var content string
@@ -143,7 +143,7 @@ func (c *Client) GetOutlookMails() error {
 	if err != nil {
 		return err
 	}
-	//这里的.需要转义，否则会按路径的方式解析
+	// 这里的.需要转义，否则会按路径的方式解析
 	if gjson.Get(content, "@odata\\.context").String() != "" {
 		return nil
 	}
