@@ -22,7 +22,7 @@ func BindUser(m *tb.Message, ClientId, ClientSecret string) error {
 	if err := cli.GetTokenWithCode(code); err != nil {
 		return err
 	}
-	bot.Send(m.Chat, "Token获取成功!")
+	bot.Send(m.Chat, "🎉 Token获取成功!")
 
 	info, err := cli.GetUserInfo()
 	if err != nil {
@@ -38,11 +38,10 @@ func BindUser(m *tb.Message, ClientId, ClientSecret string) error {
 		Other:        "",
 	}
 
-	// MS User Is Exist
 	if MSAppIsExist(u.TgId, u.ClientId) {
-		return errors.New("该应用已经绑定过了，无需重复绑定")
+		return errors.New("⚠ 该应用已经绑定过了，无需重复绑定")
 	}
-	// MS information has gotten
+
 	bot.Send(m.Chat,
 		fmt.Sprintf("ms_id(MD5)：%s\nuserPrincipalName：%s\ndisplayName：%s",
 			u.MsId,

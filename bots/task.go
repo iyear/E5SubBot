@@ -57,8 +57,6 @@ func SignTask() {
 		model.DB.Save(&errClient.Client)
 	}
 
-	// fmt.Println(signErr)
-	// fmt.Println(errorTimes)
 	timeSpending := time.Since(start).Seconds()
 	summarySignTaskForUsers(errClients)
 	summarySignTaskForAdmins(errClients, timeSpending)
