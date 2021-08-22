@@ -1,4 +1,10 @@
-# E5SubBot
+<img src="https://github.com/iyear/E5SubBot/raw/master/pics/office.png" alt="logo" width="130" height="130" align="left" />
+
+<h1>E5SubBot</h1>
+
+> A Simple Telebot for E5 Renewal
+
+<br/>
 
 ![](https://img.shields.io/github/go-mod/go-version/iyear/E5SubBot?style=flat-square)
 ![](https://img.shields.io/badge/license-GPL-lightgrey.svg?style=flat-square)
@@ -6,12 +12,7 @@
 
 [English](https://github.com/iyear/E5SubBot) | 简体中文 | [交流群组](https://t.me/e5subbot)
 
-A Simple Telebot for E5 Renewal
-
-`Golang` + `MySQL`
-
 DEMO: https://t.me/E5Sub_bot
-
 
 ## 特性
 
@@ -21,12 +22,12 @@ DEMO: https://t.me/E5Sub_bot
 - 极为方便的授权方式
 - 使用并发加快运行速度
 
-
 ## 原理
 
 E5订阅为开发者订阅，只要调用相关API就有可能续期
 
-调用 [Outlook ReadMail API](https://docs.microsoft.com/zh-cn/graph/api/user-list-messages?view=graph-rest-1.0&tabs=http) 实现玄学的续订方式，不保证续订效果。
+调用 [Outlook ReadMail API](https://docs.microsoft.com/zh-cn/graph/api/user-list-messages?view=graph-rest-1.0&tabs=http)
+实现玄学的续订方式，不保证续订效果。
 
 ## 使用方法
 
@@ -36,25 +37,19 @@ E5订阅为开发者订阅，只要调用相关API就有可能续期
 4. 获得授权链接，使用E5主账号或同域账号登录
 5. 授权后会跳转至`http://localhost/e5sub……`  (会提示网页错误，复制链接即可)
 6. 复制整个浏览框内容，在机器人对话框回复 `链接+空格+别名(用于管理账户)`
-例如：`http://localhost/e5sub/?code=abcd MyE5`，等待机器人绑定后即完成
+   例如：`http://localhost/e5sub/?code=abcd MyE5`，等待机器人绑定后即完成
 
 ## 自行部署
 
 Bot创建教程:[Google](https://www.google.com/search?q=telegram+Bot%E5%88%9B%E5%BB%BA%E6%95%99%E7%A8%8B)
 
-### Docker部署
-感谢 [@kzw200015](https://github.com/kzw200015) 提供`Dockerfile`以及`Docker`方面的帮助
+### 二进制文件 (推荐)
 
-第一次启动不行，使用 `docker-compose restart`重启一次
-```bash
-mkdir ./e5bot && wget --no-check-certificate -O ./e5bot/config.yml https://raw.githubusercontent.com/iyear/E5SubBot/master/config.yml.example
-vi ./e5bot/config.yml
-wget --no-check-certificate https://raw.githubusercontent.com/iyear/E5SubBot/master/docker-compose.yml
-docker-compose up -d
-```
-### 二进制文件
+二进制文件配合 `sqlite` 比 `docker` 更轻
 
-在[Releases](https://github.com/iyear/E5SubBot/releases)页面下载对应系统的二进制文件，上传至服务器
+`mysql` 转 `sqlite` 请使用搜索引擎
+
+在 [Releases](https://github.com/iyear/E5SubBot/releases) 页面下载对应系统的二进制文件，上传至服务器
 
 Windows: 启动 `E5SubBot.exe`
 
@@ -66,6 +61,20 @@ chmod +x E5SubBot
 ./E5SubBot
 (Ctrl A+D)
 ```
+
+### Docker部署
+
+感谢 [@kzw200015](https://github.com/kzw200015) 提供`Dockerfile`以及`Docker`方面的帮助
+
+第一次启动不行，使用 `docker-compose restart`重启一次
+
+```bash
+mkdir ./e5bot && wget --no-check-certificate -O ./e5bot/config.yml https://raw.githubusercontent.com/iyear/E5SubBot/master/config.yml.example
+vi ./e5bot/config.yml
+wget --no-check-certificate https://raw.githubusercontent.com/iyear/E5SubBot/master/docker-compose.yml
+docker-compose up -d
+```
+
 ### 编译
 
 下载源码，安装GO环境
@@ -82,20 +91,26 @@ git clone https://github.com/iyear/E5SubBot.git && cd E5SubBot && go build
 
 ```yaml
 bot_token: YOUR_BOT_TOKEN
-socks5: 127.0.0.1:1080
-notice: "第一行\n第二行"
-admin: 66666,77777,88888
-goroutine: 10
-errlimit: 5
-cron: "1 */3 * * *"
-bindmax: 3
-mysql:
-  host: 127.0.0.1
-  port: 3306
-  user: e5sub
-  password: e5sub
-  database: e5sub
-  table: users
+# socks5: 127.0.0.1:1080
+bindmax: 999
+goroutine: 20
+admin: 111,222,333
+errlimit: 999
+notice: |-
+   aaa
+   bbb
+   ccc
+cron: "1 */1 * * *"
+db: sqlite
+table: users
+# mysql:
+#    host: 127.0.0.1
+#    port: 3306
+#    user: root
+#    password: pwd
+#    database: e5sub
+sqlite:
+   db: data.db
 ```
 
 `bindmax`,`notice`,`admin`,`goroutine`,`errlimit`可热更新，直接更新`config.yml`保存即可
@@ -110,7 +125,10 @@ mysql:
 |errlimit|单账户最大出错次数，满后自动解绑单账户并发送通知，不限制错误次数将值改为负数`(-1)`即可;bot重启后会清零所有错误次数|5|
 |cron|API调用频率，使用cron表达式|-|
 |bindmax|最大可绑定数|5|
-|mysql|mysql配置，请提前创建数据库(旧版本升级请设置table为users，否则读不到数据表)|-|
+|db|`mysql` 或 `sqlite` ，表示使用的数据库类型，并设置对应的配置|-|
+|table|数据表名(旧版本升级请设置table为 `users`，否则读不到数据表)|-|
+|mysql|`mysql` 配置，请提前创建数据库|-|
+|sqlite|`sqlite` 配置|-|
 
 ### 命令
 
@@ -123,7 +141,9 @@ mysql:
 /task 手动执行一次任务(Bot管理员)  
 /log 获取最近日志文件(Bot管理员)  
 ```
+
 ## 注意事项
+
 > 更新时间与北京时间不符
 
 更改服务器时区为`Asia/Shanghai`，然后使用`/task`手动执行一次任务刷新时间

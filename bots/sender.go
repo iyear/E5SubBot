@@ -19,8 +19,6 @@ type Msg struct {
 	Options []interface{}
 }
 
-//牺牲错误处理和解耦，加快发送速度
-
 func NewSender() *Sender {
 	return &Sender{}
 }
@@ -36,7 +34,6 @@ func (s *Sender) Init(goroutine int) {
 	}
 }
 
-//Stop until all messages were sent
 func (s *Sender) Stop() {
 	s.wg.Wait()
 	close(s.done)

@@ -52,13 +52,11 @@ func SignTask() {
 			opErrorSign(errClient)
 			continue
 		}
-		//请求一次成功清零errorTimes，避免接口的偶然错误积累导致账号被清退
+		// 请求一次成功清零errorTimes，避免接口的偶然错误积累导致账号被清退
 		errorTimes[errClient.ID] = 0
 		model.DB.Save(&errClient.Client)
 	}
 
-	//fmt.Println(signErr)
-	//fmt.Println(errorTimes)
 	timeSpending := time.Since(start).Seconds()
 	summarySignTaskForUsers(errClients)
 	summarySignTaskForAdmins(errClients, timeSpending)
@@ -97,7 +95,7 @@ func summarySignTaskForUsers(errClients []*model.ErrClient) {
 
 	for _, errClient := range errClients {
 		errClient := errClient
-		//pending SignErrNum
+		// pending SignErrNum
 		if errorTimes[errClient.ID] > config.MaxErrTimes {
 			if result := model.DB.Delete(&errClient.Client); result.Error != nil {
 				zap.S().Errorw("failed to delete data",

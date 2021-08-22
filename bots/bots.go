@@ -31,13 +31,10 @@ const (
 func BotStart() {
 	var err error
 	fmt.Printf("%s\n", logo)
-	//read config
+
 	config.InitConfig()
-	//Init Logger
 	logger.InitLogger()
-	//InitDB
 	model.InitDB()
-	//Init Task
 	InitTask()
 
 	Poller := &tb.LongPoller{Timeout: 15 * time.Second}
@@ -54,9 +51,8 @@ func BotStart() {
 		Token:  config.BotToken,
 		Poller: spamPoller,
 	}
-	//set socks5
+
 	if config.Socks5 != "" {
-		fmt.Println("Proxy: " + config.Socks5)
 		dialer, err := proxy.SOCKS5("tcp", config.Socks5, nil, proxy.Direct)
 		if err != nil {
 			zap.S().Errorw("failed to get dialer",
@@ -68,7 +64,7 @@ func BotStart() {
 
 		botSetting.Client = httpClient
 	}
-	//create bot
+
 	bot, err = tb.NewBot(botSetting)
 	if err != nil {
 		zap.S().Errorw("failed to create bot", "error", err)
@@ -82,7 +78,7 @@ func BotStart() {
 	bot.Start()
 }
 func MakeHandle() {
-	//所有用户
+	// 所有用户
 	bot.Handle("/start", bStart)
 	bot.Handle("/my", bMy)
 	bot.Handle("/bind", bBind1)
@@ -90,7 +86,7 @@ func MakeHandle() {
 	bot.Handle("/export", bExport)
 	bot.Handle("/help", bHelp)
 	bot.Handle(tb.OnText, bOnText)
-	//管理员
+	// 管理员
 	bot.Handle("/task", bTask)
 	bot.Handle("/log", bLog)
 }

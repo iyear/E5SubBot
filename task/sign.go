@@ -50,7 +50,7 @@ func Sign(clients []*model.Client) []*model.ErrClient {
 				"error", errClient.Err,
 				"id", errClient.ID,
 			)
-			//fmt.Printf("%s %s\n",errClient.MsId,errClient.Err)
+			// fmt.Printf("%s %s\n",errClient.MsId,errClient.Err)
 		}
 		errClients = append(errClients, errClient)
 	}

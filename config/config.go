@@ -31,16 +31,21 @@ var (
 	Cron          string
 	Notice        string
 	Admins        []int64
-	Mysql         MysqlConfig
+	DB            string
+	Table         string
+	Mysql         mysqlConfig
+	Sqlite        sqliteConfig
 )
 
-type MysqlConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DB       string
-	Table    string
+type sqliteConfig struct {
+	DB string `json:"db,omitempty"`
+}
+type mysqlConfig struct {
+	Host     string `json:"host,omitempty"`
+	Port     int    `json:"port,omitempty"`
+	User     string `json:"user,omitempty"`
+	Password string `json:"password,omitempty"`
+	DB       string `json:"db,omitempty"`
 }
 
 func InitConfig() {
@@ -64,15 +69,24 @@ func InitConfig() {
 
 	MaxGoroutines = viper.GetInt("goroutine")
 	Admins = getAdmins()
+	DB = viper.GetString("db")
+	Table = viper.GetString("table")
 
-	Mysql = MysqlConfig{
-		Host:     viper.GetString("mysql.host"),
-		Port:     viper.GetInt("mysql.port"),
-		User:     viper.GetString("mysql.user"),
-		Password: viper.GetString("mysql.password"),
-		DB:       viper.GetString("mysql.database"),
-		Table:    viper.GetString("mysql.table"),
+	switch DB {
+	case "mysql":
+		Mysql = mysqlConfig{
+			Host:     viper.GetString("mysql.host"),
+			Port:     viper.GetInt("mysql.port"),
+			User:     viper.GetString("mysql.user"),
+			Password: viper.GetString("mysql.password"),
+			DB:       viper.GetString("mysql.database"),
+		}
+	case "sqlite":
+		Sqlite = sqliteConfig{
+			DB: viper.GetString("sqlite.db"),
+		}
 	}
+
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
 		MaxGoroutines = viper.GetInt("goroutine")
