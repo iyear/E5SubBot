@@ -1,14 +1,16 @@
-# E5SubBot
+<img src="https://github.com/iyear/E5SubBot/raw/master/pics/office.png" alt="logo" width="130" height="130" align="left" />
+
+<h1>E5SubBot</h1>
+
+> A Simple Telebot for E5 Renewal
+
+<br/>
 
 ![](https://img.shields.io/github/go-mod/go-version/iyear/E5SubBot?style=flat-square)
 ![](https://img.shields.io/badge/license-GPL-lightgrey.svg?style=flat-square)
 ![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=green&style=flat-square)
 
 [English](https://github.com/iyear/E5SubBot) | 简体中文 | [交流群组](https://t.me/e5subbot)
-
-A Simple Telebot for E5 Renewal
-
-`Golang` + `MySQL`
 
 DEMO: https://t.me/E5Sub_bot
 

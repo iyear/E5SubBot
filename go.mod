@@ -1,6 +1,6 @@
 module github.com/iyear/E5SubBot
 
-go 1.13
+go 1.16
 
 require (
 	github.com/cloudquery/sqlite v1.0.1 // indirect
