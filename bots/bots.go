@@ -70,7 +70,7 @@ func BotStart() {
 		zap.S().Errorw("failed to create bot", "error", err)
 		return
 	}
-	fmt.Println("Bot: " + strconv.Itoa(bot.Me.ID) + " " + bot.Me.Username)
+	fmt.Println("Bot: " + strconv.FormatInt(bot.Me.ID, 10) + " " + bot.Me.Username)
 
 	MakeHandle()
 	fmt.Println("Bot Start")
