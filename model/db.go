@@ -2,8 +2,8 @@ package model
 
 import (
 	"fmt"
-	"github.com/cloudquery/sqlite"
 	"github.com/iyear/E5SubBot/config"
+	"github.com/iyear/sqlite"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

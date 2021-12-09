@@ -10,7 +10,7 @@
 ![](https://img.shields.io/badge/license-GPL-lightgrey.svg?style=flat-square)
 ![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=green&style=flat-square)
 
-[English](https://github.com/iyear/E5SubBot) | 简体中文 | [交流群组](https://t.me/e5subbot)
+[English](https://github.com/iyear/E5SubBot) | 简体中文 | [Telegram群组](https://t.me/e5subbot)
 
 DEMO: https://t.me/E5Sub_bot
 
