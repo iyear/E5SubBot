@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/iyear/E5SubBot/config"
 	"github.com/iyear/E5SubBot/model"
-	"github.com/iyear/E5SubBot/task"
+	"github.com/iyear/E5SubBot/pkg/microsoft"
+	"github.com/iyear/E5SubBot/service/srv_client"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 	tb "gopkg.in/tucnak/telebot.v2"
@@ -12,10 +13,17 @@ import (
 	"time"
 )
 
-var errorTimes map[int]int
-var signErr map[int64]int
-var unbindUsers []int64
-var msgSender *Sender
+type ErrClient struct {
+	*model.Client
+	Err error
+}
+
+var (
+	errorTimes  map[int]int
+	signErr     map[int64]int
+	unbindUsers []int64
+	msgSender   *Sender
+)
 
 func InitTask() {
 	errorTimes = make(map[int]int)
@@ -31,12 +39,7 @@ func SignTask() {
 	signErr = make(map[int64]int)
 	unbindUsers = nil
 
-	var clients []*model.Client
-	if result := model.DB.Find(&clients); result.Error != nil {
-		zap.S().Errorw("failed to get all clients",
-			"error", result.Error)
-		return
-	}
+	clients := srv_client.GetAllClients()
 
 	fmt.Printf("clients: %d goroutines:%d\n",
 		len(clients),
@@ -45,7 +48,7 @@ func SignTask() {
 
 	start := time.Now()
 
-	errClients := task.Sign(clients)
+	errClients := Sign(clients)
 
 	for _, errClient := range errClients {
 		if errClient.Err != nil {
@@ -54,17 +57,19 @@ func SignTask() {
 		}
 		// 请求一次成功清零errorTimes，避免接口的偶然错误积累导致账号被清退
 		errorTimes[errClient.ID] = 0
-		model.DB.Save(&errClient.Client)
+		if err := srv_client.Update(errClient.Client); err != nil {
+			zap.S().Errorw("failed to update")
+		}
 	}
 
 	timeSpending := time.Since(start).Seconds()
-	summarySignTaskForUsers(errClients)
-	summarySignTaskForAdmins(errClients, timeSpending)
+	usersSummary(errClients)
+	adminSummary(errClients, timeSpending)
 
 	msgSender.Stop()
 }
 
-func summarySignTaskForAdmins(errClients []*model.ErrClient, timeSpending float64) {
+func adminSummary(errClients []*ErrClient, timeSpending float64) {
 	var Count = len(errClients)
 	var ErrCount int
 	var ErrUserStr string
@@ -88,7 +93,7 @@ func summarySignTaskForAdmins(errClients []*model.ErrClient, timeSpending float6
 		)
 	}
 }
-func summarySignTaskForUsers(errClients []*model.ErrClient) {
+func usersSummary(errClients []*ErrClient) {
 
 	var isSent map[int64]bool
 	isSent = make(map[int64]bool)
@@ -97,9 +102,9 @@ func summarySignTaskForUsers(errClients []*model.ErrClient) {
 		errClient := errClient
 		// pending SignErrNum
 		if errorTimes[errClient.ID] > config.MaxErrTimes {
-			if result := model.DB.Delete(&errClient.Client); result.Error != nil {
+			if err := srv_client.Del(errClient.ID); err != nil {
 				zap.S().Errorw("failed to delete data",
-					"error", result.Error,
+					"error", err,
 					"id", errClient.ID,
 				)
 				continue
@@ -118,7 +123,7 @@ func summarySignTaskForUsers(errClients []*model.ErrClient) {
 		if isSent[errClient.TgId] {
 			continue
 		}
-		signOK := GetBindNum(errClient.TgId) - signErr[errClient.TgId]
+		signOK := len(srv_client.GetClients(errClient.TgId)) - signErr[errClient.TgId]
 
 		msgSender.SendMessageByID(errClient.TgId,
 			fmt.Sprintf("任务反馈\n时间: %s\n结果:%d/%d",
@@ -131,7 +136,7 @@ func summarySignTaskForUsers(errClients []*model.ErrClient) {
 		time.Sleep(time.Millisecond * 100)
 	}
 }
-func opErrorSign(errClient *model.ErrClient) {
+func opErrorSign(errClient *ErrClient) {
 	errorTimes[errClient.ID]++
 	signErr[errClient.TgId]++
 
@@ -143,4 +148,56 @@ func opErrorSign(errClient *model.ErrClient) {
 			errClient.Alias, errClient.Err),
 		&tb.ReplyMarkup{InlineKeyboard: [][]tb.InlineButton{{UnBindBtn}}},
 	)
+}
+
+func Sign(clients []*model.Client) []*ErrClient {
+	var errClients []*ErrClient
+
+	done := make(chan struct{})
+	in := make(chan *ErrClient, 5)
+	out := make(chan *ErrClient, 5)
+
+	go func() {
+		for _, client := range clients {
+			in <- &ErrClient{
+				Client: client,
+				Err:    nil,
+			}
+		}
+		close(in)
+	}()
+	for i := 0; i < config.MaxGoroutines; i++ {
+		go func() {
+			for {
+				select {
+				case errCli, f := <-in:
+					if !f {
+						continue
+					}
+
+					newRefresh, err := microsoft.GetOutlookMails(errCli.ClientId, errCli.ClientSecret, errCli.RefreshToken)
+					errCli.Err = err
+					errCli.RefreshToken = newRefresh
+					out <- errCli
+				case <-done:
+					return
+				}
+			}
+		}()
+	}
+	for i := 0; i < len(clients); i++ {
+		errClient := <-out
+		if errClient.Err == nil {
+			fmt.Printf("%s OK\n", errClient.MsId)
+		} else {
+			zap.S().Errorw("failed to sign",
+				"error", errClient.Err,
+				"id", errClient.ID,
+			)
+			// fmt.Printf("%s %s\n",errClient.MsId,errClient.Err)
+		}
+		errClients = append(errClients, errClient)
+	}
+	close(done)
+	return errClients
 }

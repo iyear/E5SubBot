@@ -3,7 +3,7 @@ package bots
 import (
 	"fmt"
 	"go.uber.org/zap"
-	"gopkg.in/tucnak/telebot.v2"
+	tb "gopkg.in/tucnak/telebot.v2"
 	"strconv"
 	"sync"
 )
@@ -14,7 +14,7 @@ type Sender struct {
 	wg   sync.WaitGroup
 }
 type Msg struct {
-	To      telebot.Recipient
+	To      tb.Recipient
 	What    interface{}
 	Options []interface{}
 }
@@ -39,6 +39,7 @@ func (s *Sender) Stop() {
 	close(s.done)
 	fmt.Println("task finished")
 }
+
 func (s *Sender) SendMessageByID(ID int64, what interface{}, options ...interface{}) {
 	s.wg.Add(1)
 	go func() {
@@ -54,7 +55,7 @@ func (s *Sender) SendMessageByID(ID int64, what interface{}, options ...interfac
 		s.SendMessage(chat, what, options...)
 	}()
 }
-func (s *Sender) SendMessage(to telebot.Recipient, what interface{}, options ...interface{}) {
+func (s *Sender) SendMessage(to tb.Recipient, what interface{}, options ...interface{}) {
 	s.in <- &Msg{
 		To:      to,
 		What:    what,

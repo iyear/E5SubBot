@@ -22,38 +22,13 @@ const (
 `
 )
 
-var (
-	BotToken      string
-	Socks5        string
-	BindMaxNum    int
-	MaxGoroutines int
-	MaxErrTimes   int
-	Cron          string
-	Notice        string
-	Admins        []int64
-	DB            string
-	Table         string
-	Mysql         mysqlConfig
-	Sqlite        sqliteConfig
-)
+func Init() {
 
-type sqliteConfig struct {
-	DB string `json:"db,omitempty"`
-}
-type mysqlConfig struct {
-	Host     string `json:"host,omitempty"`
-	Port     int    `json:"port,omitempty"`
-	User     string `json:"user,omitempty"`
-	Password string `json:"password,omitempty"`
-	DB       string `json:"db,omitempty"`
-}
-
-func InitConfig() {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
-	err := viper.ReadInConfig()
-	if err != nil {
-		zap.S().Errorw("failed to read config", "error", err)
+
+	if err := viper.ReadInConfig(); err != nil {
+		zap.S().Fatalw("failed to read config", "error", err)
 	}
 	BotToken = viper.GetString("bot_token")
 	Cron = viper.GetString("cron")
