@@ -30,9 +30,9 @@ func GetClients(uid int64) []*model.Client {
 }
 
 func GetClient(id int) (*model.Client, error) {
-	var client *model.Client
-	err := db.DB.Where("id = ?", id).First(client).Error
-	return client, err
+	var client model.Client
+	err := db.DB.Where("id = ?", id).First(&client).Error
+	return &client, err
 }
 
 func IsExist(tgID int64, clientID string) bool {
