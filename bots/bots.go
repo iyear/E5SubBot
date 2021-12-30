@@ -3,19 +3,16 @@ package bots
 import (
 	"fmt"
 	"github.com/iyear/E5SubBot/config"
+	"github.com/iyear/E5SubBot/db"
 	"github.com/iyear/E5SubBot/logger"
-	"github.com/iyear/E5SubBot/model"
 	"go.uber.org/zap"
 	"golang.org/x/net/proxy"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"net/http"
-	"strconv"
 	"time"
 )
 
-var (
-	bot *tb.Bot
-)
+var bot *tb.Bot
 
 const (
 	logo = `
@@ -28,17 +25,17 @@ const (
 `
 )
 
-func BotStart() {
+func Start() {
 	var err error
-	fmt.Printf("%s\n", logo)
+	fmt.Print(logo)
 
-	config.InitConfig()
-	logger.InitLogger()
-	model.InitDB()
+	config.Init()
+	logger.Init()
+	db.Init()
 	InitTask()
 
-	Poller := &tb.LongPoller{Timeout: 15 * time.Second}
-	spamPoller := tb.NewMiddlewarePoller(Poller, func(upd *tb.Update) bool {
+	poller := &tb.LongPoller{Timeout: 15 * time.Second}
+	midPoller := tb.NewMiddlewarePoller(poller, func(upd *tb.Update) bool {
 		if upd.Message == nil {
 			return true
 		}
@@ -47,41 +44,39 @@ func BotStart() {
 		}
 		return true
 	})
-	botSetting := tb.Settings{
+	setting := tb.Settings{
 		Token:  config.BotToken,
-		Poller: spamPoller,
+		Poller: midPoller,
 	}
 
 	if config.Socks5 != "" {
 		dialer, err := proxy.SOCKS5("tcp", config.Socks5, nil, proxy.Direct)
 		if err != nil {
-			zap.S().Errorw("failed to get dialer",
+			zap.S().Fatalw("failed to get dialer",
 				"error", err, "proxy", config.Socks5)
 		}
-		httpTransport := &http.Transport{}
-		httpTransport.Dial = dialer.Dial
-		httpClient := &http.Client{Transport: httpTransport}
-
-		botSetting.Client = httpClient
+		transport := &http.Transport{}
+		transport.Dial = dialer.Dial
+		setting.Client = &http.Client{Transport: transport}
 	}
 
-	bot, err = tb.NewBot(botSetting)
+	bot, err = tb.NewBot(setting)
 	if err != nil {
-		zap.S().Errorw("failed to create bot", "error", err)
-		return
+		zap.S().Fatalw("failed to create bot", "error", err)
 	}
-	fmt.Println("Bot: " + strconv.FormatInt(bot.Me.ID, 10) + " " + bot.Me.Username)
+	fmt.Printf("Bot: %d %s\n", bot.Me.ID, bot.Me.Username)
 
-	MakeHandle()
+	makeHandlers()
 	fmt.Println("Bot Start")
 	fmt.Println("------------")
 	bot.Start()
 }
-func MakeHandle() {
+
+func makeHandlers() {
 	// 所有用户
 	bot.Handle("/start", bStart)
 	bot.Handle("/my", bMy)
-	bot.Handle("/bind", bBind1)
+	bot.Handle("/bind", bBind)
 	bot.Handle("/unbind", bUnBind)
 	bot.Handle("/export", bExport)
 	bot.Handle("/help", bHelp)
