@@ -64,7 +64,7 @@ func Start() {
 	if err != nil {
 		zap.S().Fatalw("failed to create bot", "error", err)
 	}
-	fmt.Printf("Bot: %d %s", bot.Me.ID, bot.Me.Username)
+	fmt.Printf("Bot: %d %s\n", bot.Me.ID, bot.Me.Username)
 
 	makeHandlers()
 	fmt.Println("Bot Start")
