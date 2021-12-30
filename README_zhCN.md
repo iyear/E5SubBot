@@ -14,7 +14,7 @@
 
 ![](https://img.shields.io/github/workflow/status/iyear/E5SubBot/Docker%20Build?label=docker%20build&style=flat-square)
 ![](https://img.shields.io/docker/v/iyear/e5subbot?label=docker%20tag&style=flat-square)
-![](https://img.shields.io/docker/image-size/iyear/e5subbot?style=flat-square?label=docker%20image%20size)
+![](https://img.shields.io/docker/image-size/iyear/e5subbot?style=flat-square&label=docker%20image%20size)
 
 [English](https://github.com/iyear/E5SubBot) | 简体中文 | [Telegram群组](https://t.me/e5subbot)
 
