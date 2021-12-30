@@ -8,7 +8,13 @@
 
 ![](https://img.shields.io/github/go-mod/go-version/iyear/E5SubBot?style=flat-square)
 ![](https://img.shields.io/badge/license-GPL-lightgrey.svg?style=flat-square)
-![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=green&style=flat-square)
+![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=red&style=flat-square)
+![](https://img.shields.io/github/last-commit/iyear/E5SubBot?style=flat-square)
+![](https://img.shields.io/github/downloads/iyear/E5SubBot/total?style=flat-square)
+
+![](https://img.shields.io/github/workflow/status/iyear/E5SubBot/Docker%20Build?label=docker%20build&style=flat-square)
+![](https://img.shields.io/docker/v/iyear/e5subbot?label=docker%20tag&style=flat-square)
+![](https://img.shields.io/docker/image-size/iyear/e5subbot?style=flat-square&label=docker%20image%20size)
 
 [English](https://github.com/iyear/E5SubBot) | 简体中文 | [Telegram群组](https://t.me/e5subbot)
 
@@ -43,11 +49,35 @@ E5订阅为开发者订阅，只要调用相关API就有可能续期
 
 Bot创建教程:[Google](https://www.google.com/search?q=telegram+Bot%E5%88%9B%E5%BB%BA%E6%95%99%E7%A8%8B)
 
-### 二进制文件 (推荐)
+### Docker(推荐)
 
-二进制文件配合 `sqlite` 比 `docker` 更轻
+`Docker` 部署使用 `sqlite` 作为数据库
 
-`mysql` 转 `sqlite` 请使用搜索引擎
+支持 `amd64` `386` `arm64` `arm/v6` `arm/v7` 架构
+
+```shell
+#启动，你可以设置自己想要的时区
+docker run --name e5sub -e TZ="Asia/Shanghai" --restart=always -d iyear/e5subbot:latest
+
+#查看log
+docker logs -f e5sub
+
+#设置配置文件
+docker cp PATH/TO/config.yml e5sub:/config.yml
+docker restart e5sub
+
+#导入数据库
+docker cp PATH/TO/DATA.db e5sub:/data.db
+docker restart e5sub
+
+#备份数据库
+docker cp e5sub:/data.db .
+
+#备份配置文件
+docker cp e5sub:/config.yml .
+```
+
+### 二进制文件
 
 在 [Releases](https://github.com/iyear/E5SubBot/releases) 页面下载对应系统的二进制文件，上传至服务器
 
@@ -60,19 +90,6 @@ screen -S e5sub
 chmod +x E5SubBot
 ./E5SubBot
 (Ctrl A+D)
-```
-
-### Docker部署
-
-感谢 [@kzw200015](https://github.com/kzw200015) 提供`Dockerfile`以及`Docker`方面的帮助
-
-第一次启动不行，使用 `docker-compose restart`重启一次
-
-```bash
-mkdir ./e5bot && wget --no-check-certificate -O ./e5bot/config.yml https://raw.githubusercontent.com/iyear/E5SubBot/master/config.yml.example
-vi ./e5bot/config.yml
-wget --no-check-certificate https://raw.githubusercontent.com/iyear/E5SubBot/master/docker-compose.yml
-docker-compose up -d
 ```
 
 ### 编译

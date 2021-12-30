@@ -8,7 +8,13 @@
 
 ![](https://img.shields.io/github/go-mod/go-version/iyear/E5SubBot?style=flat-square)
 ![](https://img.shields.io/badge/license-GPL-lightgrey.svg?style=flat-square)
-![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=green&style=flat-square)
+![](https://img.shields.io/github/v/release/iyear/E5SubBot?color=red&style=flat-square)
+![](https://img.shields.io/github/last-commit/iyear/E5SubBot?style=flat-square)
+![](https://img.shields.io/github/downloads/iyear/E5SubBot/total?style=flat-square)
+
+![](https://img.shields.io/github/workflow/status/iyear/E5SubBot/Docker%20Build?label=docker%20build&style=flat-square)
+![](https://img.shields.io/docker/v/iyear/e5subbot?label=docker%20tag&style=flat-square)
+![](https://img.shields.io/docker/image-size/iyear/e5subbot?style=flat-square&label=docker%20image%20size)
 
 English | [简体中文](https://github.com/iyear/E5SubBot/blob/master/README_zhCN.md) | [Telegram Chat](https://t.me/e5subbot)
 
@@ -46,11 +52,35 @@ to renew, does not guarantee the renewal effect.
 Bot creation
 tutorial : [Microsoft](https://docs.microsoft.com/en-us/azure/bot-service/bot-service-channel-connect-telegram?view=azure-bot-service-4.0)
 
+### Docker(Recommended)
+
+`Docker` Deployment used `sqlite` as database
+
+Support `amd64` `386` `arm64` `arm/v6` `arm/v7` arch
+
+```shell
+#launch,you can set the time zone you want
+docker run --name e5sub -e TZ="Asia/Shanghai" --restart=always -d iyear/e5subbot:latest
+
+#view logs
+docker logs -f e5sub
+
+#set config
+docker cp PATH/TO/config.yml e5sub:/config.yml
+docker restart e5sub
+
+#import db
+docker cp PATH/TO/DATA.db e5sub:/data.db
+docker restart e5sub
+
+#backup db
+docker cp e5sub:/data.db .
+
+#backup config
+docker cp e5sub:/config.yml .
+```
+
 ### Binary Deployment
-
-Binary files with 'sqlite' are lighter than 'docker'
-
-`mysql` to `sqlite` please use search engine
 
 Download the binary files of the corresponding system on the [Releases](https://github.com/iyear/E5SubBot/releases) page
 and upload it to the server
@@ -64,19 +94,6 @@ screen -S e5sub
 chmod +x E5SubBot
 ./E5SubBot
 (Ctrl A+D)
-```
-
-### Docker Deployment
-
-Thanks to [@kzw200015](https://github.com/kzw200015) for providing help in `Dockerfile` and `Docker`
-
-If it fails to start for the first time, use `docker-compose restart` to restart
-
-```bash
-mkdir ./e5bot && wget --no-check-certificate -O ./e5bot/config.yml https://raw.githubusercontent.com/iyear/E5SubBot/master/config.yml.example
-vi ./e5bot/config.yml
-wget --no-check-certificate https://raw.githubusercontent.com/iyear/E5SubBot/master/docker-compose.yml
-docker-compose up -d
 ```
 
 ### Compile
