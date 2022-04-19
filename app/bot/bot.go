@@ -28,29 +28,29 @@ func Run(cfg string, tmplCfg string, dataPath string) {
 	log := logger.Init()
 
 	if err := config.Init(cfg); err != nil {
-		zap.S().Fatalw("init config failed", "err", err)
+		log.Fatalw("init config failed", "err", err)
 	}
 	color.Blue("read config succ...\n")
 
 	if err := template.Init(tmplCfg); err != nil {
-		zap.S().Fatalw("init template config failed", "err", err)
+		log.Fatalw("init template config failed", "err", err)
 	}
 	color.Blue("read template succ...\n")
 
 	if err := os.MkdirAll(dataPath, os.ModePerm); err != nil {
-		zap.S().Fatalw("create data dir failed", "err", err)
+		log.Fatalw("create data dir failed", "err", err)
 	}
 
 	dial, err := getDialector(dataPath)
 	rl, err := db.InitRelational(dial)
 	if err != nil {
-		zap.S().Fatalw("init db failed", "err", err)
+		log.Fatalw("init db failed", "err", err)
 	}
 	color.Blue("init db succ...\n")
 
 	kv, err := db.InitKV(path.Join(dataPath, conf.DBBolt), conf.BucketLanguage)
 	if err != nil {
-		zap.S().Fatalw("init kv database failed", "err", err, "path", dataPath)
+		log.Fatalw("init kv database failed", "err", err, "path", dataPath)
 	}
 	color.Blue("init kv db succ...\n")
 
@@ -64,7 +64,7 @@ func Run(cfg string, tmplCfg string, dataPath string) {
 
 	bot, err := tele.NewBot(settings)
 	if err != nil {
-		zap.S().Fatalw("create bot failed", "err", err)
+		log.Fatalw("create bot failed", "err", err)
 	}
 	color.Blue("create bot succ...\n")
 
@@ -79,7 +79,7 @@ func Run(cfg string, tmplCfg string, dataPath string) {
 		Log: log.Named("handler"),
 	}), middleware.AutoResponder())
 
-	makeHandlers()
+	makeHandlers(bot)
 
 	bot.Start()
 }
