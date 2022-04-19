@@ -1,7 +1,7 @@
 package models
 
 type User struct {
-	ID           int64  `gorm:"unique;primaryKey;not null"`
+	ID           int64  `gorm:"primaryKey;autoIncrement;not null"`
 	TgId         int64  `gorm:"not null"`
 	RefreshToken string `gorm:"not null"`
 	MsId         string `gorm:"not null"`
