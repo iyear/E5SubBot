@@ -14,6 +14,7 @@ test.go
 
 # Dependency directories (remove the comment below to include it)
 config.yml
+config.yaml
 
 #Database
 *.db
