@@ -11,6 +11,10 @@ type Template struct {
 	Start  struct {
 		Desc Tmpl `mapstructure:"desc"`
 	} `mapstructure:"start"`
+	Settings struct {
+		Desc     Tmpl `mapstructure:"desc"`
+		Language Tmpl `mapstructure:"language"`
+	} `mapstructure:"settings"`
 }
 
 type ButtonTmpl struct {
@@ -21,6 +25,8 @@ type ButtonTmpl struct {
 	StartImport   string `mapstructure:"start_import"`
 	StartMy       string `mapstructure:"start_my"`
 	StartSettings string `mapstructure:"start_settings"`
+
+	SettingsLanguage string `mapstructure:"settings_language"`
 }
 
 type Button struct {
@@ -32,6 +38,9 @@ type Button struct {
 	StartImport   tele.InlineButton
 	StartMy       tele.InlineButton
 	StartSettings tele.InlineButton
+
+	SettingsLanguage      tele.InlineButton
+	SettingsLanguagePlain tele.InlineButton
 }
 
 type Tmpl struct {

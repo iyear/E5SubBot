@@ -28,6 +28,9 @@ func newButton(t *model.ButtonTmpl) *model.Button {
 		StartImport:   tele.InlineButton{Unique: "start_import", Text: t.StartImport},
 		StartMy:       tele.InlineButton{Unique: "start_my", Text: t.StartMy},
 		StartSettings: tele.InlineButton{Unique: "start_settings", Text: t.StartSettings},
+
+		SettingsLanguage:      tele.InlineButton{Unique: "settings_language", Text: t.SettingsLanguage},
+		SettingsLanguagePlain: tele.InlineButton{Unique: "settings_set_language"},
 	}
 	return b
 }
