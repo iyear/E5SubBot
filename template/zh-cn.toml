@@ -5,15 +5,15 @@ start_unbind = "🔓 解绑账号"
 start_export = "📤 导出账号"
 start_import = "📥 导入账号"
 start_my = "🧑 我的信息"
-start_help = "📖 帮助"
+start_settings = "⚙ 设置"
 
 [start]
 desc = """
 ✨ 你好！[{{ .Username }}](tg://user?id={{ .ID }}) ✨
 
-*PayInBot 是专注于简化付费入群流程的 Bot*
+*E5SubBot 是专注于简化E5续订的 Bot*
 
-[GitHub](https://github.com/iyear/E5SubBot) | [Chat](https://t.me/e5subbot)
+[GitHub](https://github.com/iyear/E5SubBot) | [官方群组](https://t.me/e5subbot)
 
 **公告:** ```{{ .Notice }}```
 👇 点击按钮开始使用 👇
