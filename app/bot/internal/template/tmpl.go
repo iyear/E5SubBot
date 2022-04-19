@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"github.com/fatih/color"
 	"github.com/iyear/E5SubBot/app/bot/internal/model"
-	"github.com/iyear/E5SubBot/pkg/conf"
 	"github.com/iyear/E5SubBot/pkg/utils"
 	iso6391 "github.com/iyear/iso-639-1"
 	"github.com/spf13/viper"
 	tele "gopkg.in/telebot.v3"
 	"io/fs"
-	"path"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -21,7 +19,7 @@ import (
 
 func Init(tmplPath string) error {
 	color.Blue("loading templates...\n")
-	paths, err := walkTemplates(path.Join(tmplPath, conf.PathTemplate))
+	paths, err := walkTemplates(tmplPath)
 	if err != nil {
 		return err
 	}
