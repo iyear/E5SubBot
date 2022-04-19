@@ -23,3 +23,5 @@ config.yaml
 #Logs
 /log
 /.idea
+#kv db
+*.kv
