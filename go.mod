@@ -14,8 +14,8 @@ require (
 	golang.org/x/net v0.0.0-20220412020605-290c469a71a5
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/telebot.v3 v3.0.0
-	gorm.io/driver/mysql v1.3.3
-	gorm.io/gorm v1.23.4
+	gorm.io/driver/mysql v1.2.0
+	gorm.io/gorm v1.22.3
 )
 
 require (
