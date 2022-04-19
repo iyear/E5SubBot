@@ -10,6 +10,7 @@ import (
 	"github.com/iyear/E5SubBot/app/bot/internal/template"
 	"github.com/iyear/E5SubBot/pkg/conf"
 	"github.com/iyear/E5SubBot/pkg/db"
+	"github.com/iyear/E5SubBot/pkg/models"
 	"github.com/iyear/sqlite"
 	"github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
@@ -42,7 +43,7 @@ func Run(cfg string, tmplCfg string, dataPath string) {
 	}
 
 	dial, err := getDialector(dataPath)
-	rl, err := db.InitRelational(dial)
+	rl, err := db.InitRelational(dial, &models.User{})
 	if err != nil {
 		log.Fatalw("init db failed", "err", err)
 	}

@@ -19,7 +19,7 @@ func OnStart(c tele.Context) error {
 		}), &tele.SendOptions{
 			DisableWebPagePreview: true,
 			ReplyMarkup: &tele.ReplyMarkup{InlineKeyboard: [][]tele.InlineButton{
-				{b.StartMy, b.StartHelp},
+				{b.StartMy, b.StartSettings},
 				{b.StartBind, b.StartUnbind},
 				{b.StartExport, b.StartImport},
 			}},

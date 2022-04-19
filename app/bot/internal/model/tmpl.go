@@ -14,24 +14,24 @@ type Template struct {
 }
 
 type ButtonTmpl struct {
-	Back        string `mapstructure:"back"`
-	StartBind   string `mapstructure:"start_bind"`
-	StartUnbind string `mapstructure:"start_unbind"`
-	StartExport string `mapstructure:"start_export"`
-	StartImport string `mapstructure:"start_import"`
-	StartMy     string `mapstructure:"start_my"`
-	StartHelp   string `mapstructure:"start_help"`
+	Back          string `mapstructure:"back"`
+	StartBind     string `mapstructure:"start_bind"`
+	StartUnbind   string `mapstructure:"start_unbind"`
+	StartExport   string `mapstructure:"start_export"`
+	StartImport   string `mapstructure:"start_import"`
+	StartMy       string `mapstructure:"start_my"`
+	StartSettings string `mapstructure:"start_settings"`
 }
 
 type Button struct {
 	Back tele.InlineButton
 
-	StartBind   tele.InlineButton
-	StartUnbind tele.InlineButton
-	StartExport tele.InlineButton
-	StartImport tele.InlineButton
-	StartMy     tele.InlineButton
-	StartHelp   tele.InlineButton
+	StartBind     tele.InlineButton
+	StartUnbind   tele.InlineButton
+	StartExport   tele.InlineButton
+	StartImport   tele.InlineButton
+	StartMy       tele.InlineButton
+	StartSettings tele.InlineButton
 }
 
 type Tmpl struct {
