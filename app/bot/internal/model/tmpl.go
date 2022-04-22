@@ -27,6 +27,8 @@ type ButtonTmpl struct {
 	StartSettings string `mapstructure:"start_settings"`
 
 	SettingsLanguage string `mapstructure:"settings_language"`
+
+	MyViewUser string `mapstructure:"my_view_user"`
 }
 
 type Button struct {
@@ -41,6 +43,8 @@ type Button struct {
 
 	SettingsLanguage      tele.InlineButton
 	SettingsLanguagePlain tele.InlineButton
+
+	MyViewClient tele.InlineButton
 }
 
 type Tmpl struct {

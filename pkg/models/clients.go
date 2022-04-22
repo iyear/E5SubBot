@@ -1,6 +1,6 @@
 package models
 
-type User struct {
+type Client struct {
 	ID           int64  `gorm:"primaryKey;autoIncrement;not null"`
 	TgId         int64  `gorm:"not null"`
 	RefreshToken string `gorm:"not null"`

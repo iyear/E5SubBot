@@ -43,7 +43,7 @@ func Run(cfg string, tmplCfg string, dataPath string) {
 	}
 
 	dial, err := getDialector(dataPath)
-	rl, err := db.InitRelational(dial, &models.User{})
+	rl, err := db.InitRelational(dial, &models.Client{})
 	if err != nil {
 		log.Fatalw("init db failed", "err", err)
 	}
