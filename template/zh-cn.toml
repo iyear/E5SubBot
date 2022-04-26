@@ -35,3 +35,11 @@ desc = """
 
 绑定数: `{{ .Current }}`/`{{ .BindMax }}`
 """
+
+view = """
+🔎 信息
+别名：`{{ .Alias }}`
+客户端ID: `{{ .ClientID}}`
+客户端Secret: `{{ .ClientSecret }}`
+最近更新时间: `{{ .UpdatedAt }}`
+"""

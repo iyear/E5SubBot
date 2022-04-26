@@ -7,6 +7,7 @@ import (
 	"github.com/iyear/E5SubBot/pkg/models"
 	tele "gopkg.in/telebot.v3"
 	"strconv"
+	"time"
 )
 
 func MyStart(c tele.Context) error {
@@ -31,4 +32,26 @@ func MyStart(c tele.Context) error {
 			BindMax: config.C.Ctrl.BindMax,
 		}),
 		&tele.ReplyMarkup{InlineKeyboard: inlineKeys})
+}
+
+func MyViewClient(c tele.Context) error {
+	sp := util.GetScope(c)
+
+	id, err := strconv.Atoi(c.Data())
+	if err != nil {
+		return err
+	}
+
+	client := &models.Client{}
+	if err = sp.DB.DB.Where("id = ?", id).First(&client).Error; err != nil {
+		return err
+	}
+
+	return util.EditOrSendWithBack(c,
+		sp.TMPL.I.My.View.T(&template.MMyView{
+			Alias:        client.Alias,
+			ClientID:     client.ClientId,
+			ClientSecret: client.ClientSecret,
+			UpdatedAt:    time.Unix(client.Uptime, 0).Format("2006-01-02 15:04:05"),
+		}))
 }

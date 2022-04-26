@@ -17,6 +17,7 @@ type Template struct {
 	} `mapstructure:"settings"`
 	My struct {
 		Desc Tmpl `mapstructure:"desc"`
+		View Tmpl `mapstructure:"view"`
 	}
 }
 
@@ -30,8 +31,6 @@ type ButtonTmpl struct {
 	StartSettings string `mapstructure:"start_settings"`
 
 	SettingsLanguage string `mapstructure:"settings_language"`
-
-	MyViewUser string `mapstructure:"my_view_user"`
 }
 
 type Button struct {
