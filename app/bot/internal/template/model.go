@@ -5,3 +5,8 @@ type MStartWelcome struct {
 	Username string
 	Notice   string
 }
+
+type MMyDesc struct {
+	Current int
+	BindMax int
+}

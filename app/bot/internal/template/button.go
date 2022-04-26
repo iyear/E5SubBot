@@ -31,6 +31,8 @@ func newButton(t *model.ButtonTmpl) *model.Button {
 
 		SettingsLanguage:      tele.InlineButton{Unique: "settings_language", Text: t.SettingsLanguage},
 		SettingsLanguagePlain: tele.InlineButton{Unique: "settings_set_language"},
+
+		MyViewClient: tele.InlineButton{Unique: "my_view_client"},
 	}
 	return b
 }

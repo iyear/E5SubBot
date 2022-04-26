@@ -15,7 +15,7 @@ func makeHandlers(bot *tele.Bot) {
 		h.Handle("/start", handler.OnStart)
 
 		h.Handle(&b.Back, handler.OnStart)
-		h.Handle(&b.StartMy, handler.My)
+		h.Handle(&b.StartMy, handler.MyStart)
 		h.Handle(&b.StartSettings, handler.SettingsStart)
 		h.Handle(&b.SettingsLanguage, handler.SettingsLanguage)
 		h.Handle(&b.SettingsLanguagePlain, handler.SettingsSetLanguage)

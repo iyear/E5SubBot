@@ -15,6 +15,9 @@ type Template struct {
 		Desc     Tmpl `mapstructure:"desc"`
 		Language Tmpl `mapstructure:"language"`
 	} `mapstructure:"settings"`
+	My struct {
+		Desc Tmpl `mapstructure:"desc"`
+	}
 }
 
 type ButtonTmpl struct {
