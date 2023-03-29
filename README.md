@@ -130,6 +130,9 @@ table: users
 #    user: root
 #    password: pwd
 #    database: e5sub
+# ssl_mode and enabled_tls_protocols are only required when the database requires a SSL connection (e.g. TiDB Cloud)
+#    ssl_mode: PREFERRED
+#    enabled_tls_protocols: TLSv1.2,TLSv1.3
 sqlite:
    db: data.db
 ```

@@ -21,13 +21,23 @@ func Init() {
 
 	switch config.DB {
 	case "mysql":
-		dial = mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		var dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			config.Mysql.User,
 			config.Mysql.Password,
 			config.Mysql.Host,
 			config.Mysql.Port,
 			config.Mysql.DB,
-		))
+		)
+
+		if config.Mysql.SSLMode != "" {
+			dsn += "&sslMode=" + config.Mysql.SSLMode
+
+			if config.Mysql.EnabledTLSProtocols != "" {
+				dsn += "&enabledTLSProtocols=" + config.Mysql.EnabledTLSProtocols
+			}
+		}
+
+		dial = mysql.Open(dsn)
 	case "sqlite":
 		dial = sqlite.Open(config.Sqlite.DB)
 	}
