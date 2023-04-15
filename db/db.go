@@ -30,11 +30,7 @@ func Init() {
 		)
 
 		if config.Mysql.SSLMode != "" {
-			dsn += "&sslMode=" + config.Mysql.SSLMode
-
-			if config.Mysql.EnabledTLSProtocols != "" {
-				dsn += "&enabledTLSProtocols=" + config.Mysql.EnabledTLSProtocols
-			}
+			dsn += "&tls=" + config.Mysql.SSLMode
 		}
 
 		dial = mysql.Open(dsn)

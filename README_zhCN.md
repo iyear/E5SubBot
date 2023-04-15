@@ -126,9 +126,8 @@ table: users
 #    user: root
 #    password: pwd
 #    database: e5sub
-# ssl_mode和enabled_tls_protocols仅在数据库需要SSL链接时才需要配置（如连接TiDB Cloud）
+# ssl_mode仅在数据库需要SSL链接时才需要配置（如连接TiDB Cloud）
 #    ssl_mode: PREFERRED
-#    enabled_tls_protocols: TLSv1.2,TLSv1.3
 sqlite:
    db: data.db
 ```
