@@ -5,9 +5,6 @@ builds:
   - env:
       - CGO_ENABLED=0
     ldflags: -s -w
-    hooks:
-      post:
-        - upx --best "{{ .Path }}"
     goos:
       - linux
       - windows
@@ -52,8 +49,22 @@ archives:
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
+  use: github
   sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
+  groups:
+    - title: New Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: 'Bug fixes'
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: 'Documentation updates'
+      regexp: "^.*docs[(\\w)]*:+.*$"
+      order: 2
+    - title: 'Refactoring'
+      regexp: "^.*refactor[(\\w)]*:+.*$"
+      order: 3
+    - title: Others
+      order: 4
+release:
+  draft: true
