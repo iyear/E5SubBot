@@ -130,6 +130,8 @@ table: users
 #    user: root
 #    password: pwd
 #    database: e5sub
+# ssl_mode is only required when the database requires a SSL connection (e.g. TiDB Cloud)
+#    ssl_mode: PREFERRED
 sqlite:
    db: data.db
 ```

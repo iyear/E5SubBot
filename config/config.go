@@ -50,11 +50,13 @@ func Init() {
 	switch DB {
 	case "mysql":
 		Mysql = mysqlConfig{
-			Host:     viper.GetString("mysql.host"),
-			Port:     viper.GetInt("mysql.port"),
-			User:     viper.GetString("mysql.user"),
-			Password: viper.GetString("mysql.password"),
-			DB:       viper.GetString("mysql.database"),
+			Host:                viper.GetString("mysql.host"),
+			Port:                viper.GetInt("mysql.port"),
+			User:                viper.GetString("mysql.user"),
+			Password:            viper.GetString("mysql.password"),
+			DB:                  viper.GetString("mysql.database"),
+			SSLMode:             viper.GetString("mysql.ssl_mode"),
+			EnabledTLSProtocols: viper.GetString("mysql.enabled_tls_protocols"),
 		}
 	case "sqlite":
 		Sqlite = sqliteConfig{

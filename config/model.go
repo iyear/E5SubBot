@@ -19,9 +19,11 @@ type sqliteConfig struct {
 	DB string `json:"db,omitempty"`
 }
 type mysqlConfig struct {
-	Host     string `json:"host,omitempty"`
-	Port     int    `json:"port,omitempty"`
-	User     string `json:"user,omitempty"`
-	Password string `json:"password,omitempty"`
-	DB       string `json:"db,omitempty"`
+	Host                string `json:"host,omitempty"`
+	Port                int    `json:"port,omitempty"`
+	User                string `json:"user,omitempty"`
+	Password            string `json:"password,omitempty"`
+	DB                  string `json:"db,omitempty"`
+	SSLMode             string `json:"ssl_mode,omitempty"`
+	EnabledTLSProtocols string `json:"enabled_tls_protocols,omitempty"`
 }
